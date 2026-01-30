@@ -1,11 +1,12 @@
 /**
- * KarmaTrust Main Application Component
+ * Main App Component
  * 
- * Defines the application routes:
+ * Sets up routing for the KarmaTrust frontend.
+ * 
+ * Routes:
  * - / : Home page (wallet input)
- * - /demo : Split-screen demo (User view + Bank view)
- * 
- * Design: Bloomberg terminal + OKX tech aesthetic
+ * - /demo : Demo page without wallet
+ * - /demo/:wallet : Demo page with wallet address
  */
 
 import { Routes, Route } from 'react-router-dom';
@@ -14,12 +15,11 @@ import Demo from './pages/Demo';
 
 function App() {
   return (
-    <div className="min-h-screen bg-background text-white font-display">
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/demo" element={<Demo />} />
-      </Routes>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/demo" element={<Demo />} />
+      <Route path="/demo/:wallet" element={<Demo />} />
+    </Routes>
   );
 }
 

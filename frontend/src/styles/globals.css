@@ -1,14 +1,17 @@
 /**
  * KarmaTrust Global Styles
  * 
- * Design System: Bloomberg Professional + OKX Tech
+ * Design System: Bloomberg Terminal + OKX Tech
  * 
- * Key characteristics:
- * - Deep black backgrounds (#050505)
- * - Neon green primary (#00ff88)
- * - Gold accents (#ffd700)
- * - Terminal-style typography
- * - Glow effects for emphasis
+ * Colors:
+ * - Primary: #00ff88 (Neon Green - trust, growth)
+ * - Accent: #ffd700 (Gold - premium, value)
+ * - Background: #0a0a0a (Deep black)
+ * - Surface: #1a1a1a (Card backgrounds)
+ * 
+ * Typography:
+ * - Headings: JetBrains Mono (technical, precise)
+ * - Body: Inter (clean, readable)
  */
 
 @tailwind base;
@@ -16,58 +19,75 @@
 @tailwind utilities;
 
 /* =============================================================================
-   CSS VARIABLES
+   CSS Variables
    ============================================================================= */
 
 :root {
-  /* Primary palette */
-  --color-primary: #00ff88;
-  --color-primary-dim: rgba(0, 255, 136, 0.2);
-  --color-primary-glow: rgba(0, 255, 136, 0.4);
-  
-  /* Accent (financial gold) */
-  --color-accent: #ffd700;
-  --color-accent-dim: rgba(255, 215, 0, 0.2);
-  
-  /* Background layers */
-  --color-bg: #050505;
-  --color-bg-secondary: #0a0a0a;
-  --color-bg-tertiary: #111111;
-  
-  /* Surface (cards) */
-  --color-surface: #0a0a0a;
-  --color-border: #1a1a1a;
-  
-  /* Text */
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #a0a0a0;
-  --color-text-muted: #505050;
+  --primary: #00ff88;
+  --accent: #ffd700;
+  --background: #0a0a0a;
+  --surface: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666666;
+  --border: #2a2a2a;
+  --error: #ff4444;
+  --success: #00ff88;
+  --warning: #ffd700;
 }
 
 /* =============================================================================
-   BASE STYLES
+   Base Styles
    ============================================================================= */
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text-primary);
-  font-family: 'Space Grotesk', sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar styling (Bloomberg terminal feel) */
+/* =============================================================================
+   Typography
+   ============================================================================= */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+}
+
+/* =============================================================================
+   Custom Scrollbar (Bloomberg style)
+   ============================================================================= */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--surface);
   border-radius: 4px;
 }
 
@@ -75,166 +95,157 @@ body {
   background: #2a2a2a;
 }
 
-/* Selection */
+/* =============================================================================
+   Selection
+   ============================================================================= */
+
 ::selection {
-  background: var(--color-primary-dim);
-  color: var(--color-primary);
+  background: var(--primary);
+  color: var(--background);
 }
 
 /* =============================================================================
-   COMPONENT CLASSES
+   Focus States
    ============================================================================= */
 
-@layer components {
-  /* Card with glass morphism + glow border */
-  .card {
-    @apply bg-surface rounded-xl border border-surface-border;
-    @apply backdrop-blur-sm;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.03) 0%,
-      rgba(255, 255, 255, 0.01) 100%
-    );
-  }
-  
-  .card:hover {
-    @apply border-primary/30;
-    box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
-  }
-  
-  /* Primary button with glow */
-  .btn-primary {
-    @apply px-6 py-3 rounded-lg font-semibold;
-    @apply bg-gradient-to-r from-primary to-tech-blue;
-    @apply text-background;
-    @apply transition-all duration-300;
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-  }
-  
-  .btn-primary:hover {
-    @apply transform -translate-y-0.5;
-    box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-  }
-  
-  .btn-primary:disabled {
-    @apply opacity-50 cursor-not-allowed;
-    @apply transform-none;
-    box-shadow: none;
-  }
-  
-  /* Secondary button (outlined) */
-  .btn-secondary {
-    @apply px-6 py-3 rounded-lg font-semibold;
-    @apply bg-transparent border border-accent text-accent;
-    @apply transition-all duration-300;
-  }
-  
-  .btn-secondary:hover {
-    @apply bg-accent/10;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-  }
-  
-  /* Input field */
-  .input {
-    @apply w-full px-4 py-3 rounded-lg;
-    @apply bg-background border border-surface-border;
-    @apply text-white placeholder-text-muted;
-    @apply focus:border-primary focus:outline-none;
-    @apply transition-colors duration-200;
-  }
-  
-  /* Terminal-style label */
-  .label {
-    @apply text-xs uppercase tracking-wider text-text-secondary;
-    @apply font-mono;
-  }
-  
-  /* Monospace data display */
-  .data-value {
-    @apply font-mono text-primary;
-  }
-  
-  /* Score display (large number) */
-  .score-display {
-    @apply text-5xl font-bold font-mono;
-    @apply text-primary;
-    text-shadow: 0 0 30px var(--color-primary-glow);
-  }
-  
-  /* Level badge */
-  .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full;
-    @apply text-xs font-semibold uppercase tracking-wider;
-  }
-  
-  .badge-low {
-    @apply bg-risk-low/20 text-risk-low;
-  }
-  
-  .badge-medium {
-    @apply bg-risk-medium/20 text-risk-medium;
-  }
-  
-  .badge-high {
-    @apply bg-risk-high/20 text-risk-high;
-  }
-  
-  /* Divider with gradient */
-  .divider {
-    @apply h-px w-full;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--color-primary-dim) 50%,
-      transparent 100%
-    );
-  }
-  
-  /* Privacy mask (shows ??? for hidden data) */
-  .privacy-mask {
-    @apply font-mono text-text-muted;
-    filter: blur(4px);
-    user-select: none;
-  }
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 /* =============================================================================
-   ANIMATIONS
+   Links
    ============================================================================= */
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
 }
 
-@keyframes slideUp {
-  from { 
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
+a:hover {
+  opacity: 0.8;
 }
+
+/* =============================================================================
+   Animations
+   ============================================================================= */
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 5px var(--color-primary-dim);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
   }
   50% {
-    box-shadow: 0 0 20px var(--color-primary-glow);
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.5s ease-out;
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* =============================================================================
+   Utility Classes
+   ============================================================================= */
+
+.glass {
+  background: rgba(26, 26, 26, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glow-primary {
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* =============================================================================
+   Custom Components
+   ============================================================================= */
+
+/* Terminal-style card */
+.terminal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+/* Data row */
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+/* Badge styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: rgba(0, 255, 136, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+.badge-warning {
+  background: rgba(255, 215, 0, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.badge-error {
+  background: rgba(255, 68, 68, 0.1);
+  color: var(--error);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+/* =============================================================================
+   Responsive Utilities
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+  
+  .terminal-card {
+    padding: 1rem;
+  }
 }

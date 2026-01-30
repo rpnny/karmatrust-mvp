@@ -1,121 +1,210 @@
 /**
  * Home Page
  * 
- * Entry point for KarmaTrust demo.
- * Users enter their wallet address to get credit score.
+ * Landing page for KarmaTrust.
+ * 
+ * Design: Bloomberg terminal aesthetic + OKX tech vibes
+ * - Dark background with subtle gradients
+ * - Neon green primary color
+ * - Professional typography
  * 
  * Features:
- * - Wallet address input with validation
- * - Quick access to example addresses (Vitalik, Paradigm)
- * - Navigation to /demo after input
+ * - Wallet input with validation
+ * - Quick access to example wallets
+ * - Animated background effects
  */
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-// Example wallets for quick testing
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+
 const EXAMPLE_WALLETS = [
-  { name: 'Vitalik', address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' },
-  { name: 'Paradigm', address: '0x1db3439a222c519ab44bb1144fc28167b4fa6ee6' },
+  { name: 'Vitalik', address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', icon: '👑' },
+  { name: 'Test High', address: '0x1234567890123456789012345678901234567890', icon: '📈' },
+  { name: 'Test Low', address: '0xabcdefABCDEF12345678901234567890ABCDEF12', icon: '📉' },
 ];
+
+const FEATURES = [
+  { icon: '🔐', title: 'ZK Privacy', desc: 'Prove creditworthiness without revealing data' },
+  { icon: '⚡', title: 'On-Chain', desc: 'Verifiable attestations via EAS' },
+  { icon: '🛡️', title: 'Anti-Sybil', desc: 'Built into ZK circuits, impossible to game' },
+];
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
 
 export default function Home() {
   const [wallet, setWallet] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (wallet && wallet.startsWith('0x')) {
-      navigate(`/demo?wallet=${wallet}`);
+    
+    // Validate wallet format
+    if (!wallet) {
+      setError('Please enter a wallet address');
+      return;
     }
-  };
+    
+    if (!/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
+      setError('Invalid Ethereum address format');
+      return;
+    }
 
-  const handleQuickSelect = (address: string) => {
-    navigate(`/demo?wallet=${address}`);
+    setError('');
+    navigate(`/demo/${wallet}`);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
-      
-      {/* Content */}
-      <div className="relative z-10 max-w-2xl w-full text-center">
-        {/* Logo */}
-        <h1 className="text-5xl md:text-6xl font-bold mb-2">
-          <span className="text-primary">Karma</span>
-          <span className="text-white">Trust</span>
-        </h1>
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Gradient orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
         
-        {/* Tagline */}
-        <p className="text-text-secondary text-lg mb-12">
-          On-chain credit scoring with zero-knowledge privacy
-        </p>
-        
-        {/* Input form */}
-        <form onSubmit={handleSubmit} className="mb-8">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <input
-              type="text"
-              value={wallet}
-              onChange={(e) => setWallet(e.target.value)}
-              placeholder="Enter wallet address (0x...)"
-              className="input flex-1"
-            />
+        {/* Grid pattern */}
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, #00ff88 1px, transparent 1px),
+              linear-gradient(to bottom, #00ff88 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+          }}
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4">
+        {/* Logo & Title */}
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-6xl md:text-7xl font-bold mb-4">
+            <span className="text-primary">Karma</span>
+            <span className="text-white">Trust</span>
+          </h1>
+          <p className="text-xl text-gray-400 font-mono">
+            On-Chain Credit Infrastructure
+          </p>
+          <p className="text-sm text-gray-600 mt-2">
+            DeFi's FICO + Zero-Knowledge Privacy
+          </p>
+        </motion.div>
+
+        {/* Wallet Input Card */}
+        <motion.div 
+          className="w-full max-w-xl bg-surface/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-800"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <form onSubmit={handleSubmit}>
+            {/* Input */}
+            <div className="mb-4">
+              <label className="block text-gray-400 text-sm mb-2">
+                Enter Wallet Address
+              </label>
+              <input
+                type="text"
+                value={wallet}
+                onChange={(e) => {
+                  setWallet(e.target.value);
+                  setError('');
+                }}
+                placeholder="0x..."
+                className="w-full bg-background border border-gray-700 rounded-xl px-4 py-4 text-white font-mono placeholder-gray-600 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 transition"
+              />
+              {error && (
+                <p className="text-red-400 text-sm mt-2">{error}</p>
+              )}
+            </div>
+
+            {/* Submit Button */}
             <button
               type="submit"
-              disabled={!wallet || !wallet.startsWith('0x')}
-              className="btn-primary whitespace-nowrap"
+              className="w-full bg-primary text-black py-4 rounded-xl font-semibold text-lg hover:bg-primary/90 transition transform hover:scale-[1.02] active:scale-[0.98]"
             >
-              Check Credit →
+              Analyze Credit Score →
             </button>
+          </form>
+
+          {/* Example Wallets */}
+          <div className="mt-6 pt-6 border-t border-gray-800">
+            <p className="text-gray-500 text-sm mb-3 text-center">Quick Access</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {EXAMPLE_WALLETS.map((w) => (
+                <button
+                  key={w.name}
+                  onClick={() => navigate(`/demo/${w.address}`)}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-surface rounded-lg text-sm text-gray-300 hover:text-primary hover:border-primary border border-gray-700 transition"
+                >
+                  <span>{w.icon}</span>
+                  <span>{w.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </form>
-        
-        {/* Quick access */}
-        <div className="flex items-center justify-center gap-4 text-sm">
-          <span className="text-text-muted">Quick access:</span>
-          {EXAMPLE_WALLETS.map((w) => (
-            <button
-              key={w.name}
-              onClick={() => handleQuickSelect(w.address)}
-              className="text-primary hover:text-primary/80 hover:underline transition-colors"
+        </motion.div>
+
+        {/* Features */}
+        <motion.div 
+          className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          {FEATURES.map((feature, i) => (
+            <motion.div
+              key={feature.title}
+              className="text-center p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 + i * 0.1 }}
             >
-              {w.name}
-            </button>
+              <span className="text-4xl mb-3 block">{feature.icon}</span>
+              <h3 className="text-white font-semibold mb-1">{feature.title}</h3>
+              <p className="text-gray-500 text-sm">{feature.desc}</p>
+            </motion.div>
           ))}
-        </div>
-        
-        {/* Features preview */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="card p-6 text-left">
-            <div className="text-2xl mb-2">📊</div>
-            <h3 className="font-semibold mb-1">Credit Score</h3>
-            <p className="text-sm text-text-secondary">
-              FICO-style 0-100 score based on on-chain activity
-            </p>
+        </motion.div>
+
+        {/* Tech Stack Badge */}
+        <motion.div 
+          className="mt-12 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <p className="text-xs text-gray-600 mb-2">Powered by</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {['Poseidon Hash', 'Groth16', 'EAS', 'Circom'].map((tech) => (
+              <span 
+                key={tech}
+                className="px-3 py-1 bg-surface rounded-full text-xs text-gray-500 border border-gray-800"
+              >
+                {tech}
+              </span>
+            ))}
           </div>
-          <div className="card p-6 text-left">
-            <div className="text-2xl mb-2">🔐</div>
-            <h3 className="font-semibold mb-1">ZK Privacy</h3>
-            <p className="text-sm text-text-secondary">
-              Prove your tier without revealing exact score
-            </p>
-          </div>
-          <div className="card p-6 text-left">
-            <div className="text-2xl mb-2">🛡️</div>
-            <h3 className="font-semibold mb-1">Anti-Sybil</h3>
-            <p className="text-sm text-text-secondary">
-              Wallet age constraints enforced in ZK circuit
-            </p>
-          </div>
-        </div>
+        </motion.div>
       </div>
-      
+
       {/* Footer */}
-      <div className="absolute bottom-4 text-text-muted text-xs">
-        Built for ETHGlobal | MIT License | MVP v0.1.0
-      </div>
+      <footer className="absolute bottom-0 left-0 right-0 py-4 text-center text-gray-600 text-xs">
+        <p>ETHGlobal Hackathon 2026 • MIT License</p>
+      </footer>
     </div>
   );
 }

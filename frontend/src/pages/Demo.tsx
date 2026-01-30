@@ -1,182 +1,294 @@
 /**
  * Demo Page - Split Screen View
  * 
- * Core demonstration page showing two perspectives:
- * - Left: User View (full access to score, factors, proof generation)
- * - Right: Bank View (can only verify proofs, sees limited data)
+ * The main demonstration page for the hackathon.
+ * Shows User View and Bank View side-by-side.
  * 
- * This layout is KEY for hackathon demo:
- * It visually demonstrates zero-knowledge privacy in action.
+ * Purpose:
+ * This is THE key demo page for judges. It demonstrates:
+ * 1. User sees full data (transparency)
+ * 2. Bank sees only verified claims (privacy via ZK)
+ * 3. Same data, different access levels
  * 
- * Data Flow:
- * 1. User enters wallet → fetch score → display on left
- * 2. User generates ZK proof → transfers to right side
- * 3. Bank verifies proof → sees "Gold ✓" but score shows "???"
+ * Layout:
+ * ┌────────────────┬────────────────┐
+ * │   USER VIEW    │   BANK VIEW    │
+ * │  (Full Data)   │ (ZK Protected) │
+ * │                │                │
+ * │  Score: 762    │  Score: 🔒     │
+ * │  Factors: ...  │  Tier: Gold ✓  │
+ * │                │                │
+ * └────────────────┴────────────────┘
  */
 
-import { useSearchParams, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useCredit } from '../hooks/useCredit';
+import UserDashboard from '../components/UserView/UserDashboard';
+import BankDashboard from '../components/BankView/BankDashboard';
+
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+
+const EXAMPLE_WALLETS = [
+  { name: 'Vitalik', address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' },
+  { name: 'Test 1', address: '0x1234567890123456789012345678901234567890' },
+  { name: 'Test 2', address: '0xabcdefABCDEF12345678901234567890ABCDEF12' },
+];
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
 
 export default function Demo() {
-  const [searchParams] = useSearchParams();
-  const wallet = searchParams.get('wallet');
+  const { wallet: urlWallet } = useParams<{ wallet?: string }>();
+  const navigate = useNavigate();
+  
+  // State for wallet input
+  const [inputWallet, setInputWallet] = useState(urlWallet || '');
+  const [activeWallet, setActiveWallet] = useState(urlWallet || '');
 
-  // Shortened wallet display
-  const shortWallet = wallet 
-    ? `${wallet.slice(0, 6)}...${wallet.slice(-4)}`
-    : 'No wallet';
+  // Fetch credit score
+  const { score, loading, error, refetch } = useCredit(activeWallet);
+
+  // Handle wallet submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputWallet && /^0x[a-fA-F0-9]{40}$/.test(inputWallet)) {
+      setActiveWallet(inputWallet);
+      navigate(`/demo/${inputWallet}`, { replace: true });
+    }
+  };
+
+  // Handle example wallet click
+  const handleExampleClick = (address: string) => {
+    setInputWallet(address);
+    setActiveWallet(address);
+    navigate(`/demo/${address}`, { replace: true });
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b border-surface-border px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <Link to="/" className="flex items-center gap-2 group">
-            <span className="text-xl font-bold">
-              <span className="text-primary">Karma</span>
-              <span className="text-white">Trust</span>
-            </span>
-            <span className="text-text-muted text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-              ← Back
-            </span>
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            {/* Network indicator */}
-            <div className="flex items-center gap-2 text-xs">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-text-secondary">Sepolia</span>
-            </div>
-            
-            {/* Wallet display */}
-            <div className="font-mono text-sm text-text-secondary">
-              {shortWallet}
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background">
+      {/* Top Navigation Bar */}
+      <nav className="border-b border-gray-800 bg-surface/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <button 
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 hover:opacity-80 transition"
+            >
+              <span className="text-primary text-xl font-bold">KarmaTrust</span>
+              <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">
+                DEMO
+              </span>
+            </button>
 
-      {/* Main content - Split View */}
-      <main className="flex-1 flex flex-col lg:flex-row">
-        {/* Left Side: User View */}
-        <div className="flex-1 border-r border-surface-border p-6 lg:p-8">
-          <div className="max-w-xl mx-auto">
-            {/* Section header */}
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-2xl">👤</span>
-              <div>
-                <h2 className="text-xl font-semibold">User View</h2>
-                <p className="text-sm text-text-secondary">
-                  Full access to your credit data
-                </p>
-              </div>
-            </div>
-            
-            {/* Content placeholder - will be replaced with components */}
-            <div className="space-y-6">
-              {/* Score Card Placeholder */}
-              <div className="card p-6">
-                <div className="label mb-4">Credit Score</div>
-                <div className="text-center py-8">
-                  <div className="score-display mb-2">--</div>
-                  <div className="text-text-secondary">Loading...</div>
-                </div>
-              </div>
-              
-              {/* Factors Placeholder */}
-              <div className="card p-6">
-                <div className="label mb-4">Score Factors</div>
-                <div className="text-text-muted text-center py-8">
-                  Factor breakdown will appear here
-                </div>
-              </div>
-              
-              {/* EAS Attestation Placeholder */}
-              <div className="card p-6">
-                <div className="label mb-4">📜 EAS Attestation</div>
-                <div className="text-text-muted text-center py-4">
-                  Create on-chain credential
-                </div>
-                <button className="btn-secondary w-full" disabled>
-                  Create Attestation
-                </button>
-              </div>
-              
-              {/* ZK Proof Generator Placeholder */}
-              <div className="card p-6">
-                <div className="label mb-4">🔐 ZK Proof</div>
-                <div className="text-text-muted text-center py-4">
-                  Generate privacy-preserving proof
-                </div>
-                <button className="btn-primary w-full" disabled>
-                  Generate ZK Proof
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+            {/* Wallet Input */}
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={inputWallet}
+                onChange={(e) => setInputWallet(e.target.value)}
+                placeholder="0x..."
+                className="w-64 bg-surface border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white font-mono placeholder-gray-500 focus:border-primary focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="bg-primary text-black px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-primary/80 transition"
+              >
+                Analyze
+              </button>
+              <button
+                type="button"
+                onClick={refetch}
+                className="text-gray-400 hover:text-white p-2 transition"
+                title="Refresh"
+              >
+                ↻
+              </button>
+            </form>
 
-        {/* Right Side: Bank View */}
-        <div className="flex-1 p-6 lg:p-8 bg-background-secondary/50">
-          <div className="max-w-xl mx-auto">
-            {/* Section header */}
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-2xl">🏦</span>
-              <div>
-                <h2 className="text-xl font-semibold text-accent">Bank View</h2>
-                <p className="text-sm text-text-secondary">
-                  Verify without seeing sensitive data
-                </p>
-              </div>
-            </div>
-            
-            {/* Content placeholder */}
-            <div className="space-y-6">
-              {/* Proof Input Placeholder */}
-              <div className="card p-6 border-accent/20">
-                <div className="label text-accent mb-4">Proof Verification</div>
-                <div className="text-text-muted text-center py-8">
-                  Waiting for proof from user...
-                </div>
-              </div>
-              
-              {/* Verification Result Placeholder */}
-              <div className="card p-6 border-accent/20">
-                <div className="label text-accent mb-4">Verification Result</div>
-                <div className="space-y-4 py-4">
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Level</span>
-                    <span className="text-text-muted">Pending</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Score</span>
-                    <span className="privacy-mask">███████</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Sybil Check</span>
-                    <span className="text-text-muted">Pending</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Privacy Notice */}
-              <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
-                <p className="text-xs text-accent/80">
-                  🔒 Privacy Protected: Bank can only verify tier membership.
-                  Exact score, wallet balance, and transaction history remain hidden.
-                </p>
-              </div>
+            {/* Example Wallets */}
+            <div className="hidden md:flex items-center gap-2">
+              <span className="text-xs text-gray-500">Try:</span>
+              {EXAMPLE_WALLETS.map((w) => (
+                <button
+                  key={w.name}
+                  onClick={() => handleExampleClick(w.address)}
+                  className="text-xs text-primary hover:text-primary/80 transition"
+                >
+                  {w.name}
+                </button>
+              ))}
             </div>
           </div>
         </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        {/* Loading State */}
+        {loading && (
+          <motion.div 
+            className="flex items-center justify-center h-96"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="text-gray-400">Analyzing wallet...</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <motion.div 
+            className="flex items-center justify-center h-96"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <div className="bg-red-900/20 border border-red-800 rounded-xl p-6 max-w-md text-center">
+              <p className="text-red-400 mb-2">Error</p>
+              <p className="text-gray-400 text-sm">{error}</p>
+              <button
+                onClick={refetch}
+                className="mt-4 text-primary hover:underline text-sm"
+              >
+                Try Again
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Empty State */}
+        {!activeWallet && !loading && (
+          <motion.div 
+            className="flex items-center justify-center h-96"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <div className="text-center">
+              <p className="text-4xl mb-4">👆</p>
+              <p className="text-gray-400 mb-2">Enter a wallet address to analyze</p>
+              <p className="text-gray-600 text-sm">
+                Or click one of the example wallets above
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Split Screen View */}
+        {score && !loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* View Toggle (Mobile) */}
+            <div className="lg:hidden mb-4 flex justify-center">
+              <ViewToggle />
+            </div>
+
+            {/* Split Screen */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left: User View */}
+              <div className="bg-surface/30 rounded-2xl p-6 border border-primary/20 min-h-[600px]">
+                <UserDashboard score={score} wallet={activeWallet} />
+              </div>
+
+              {/* Divider (Desktop) */}
+              <div className="hidden lg:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                <div className="bg-surface border border-gray-700 rounded-full p-3">
+                  <span className="text-2xl">⚡</span>
+                </div>
+              </div>
+
+              {/* Right: Bank View */}
+              <div className="bg-surface/30 rounded-2xl p-6 border border-accent/20 min-h-[600px]">
+                <BankDashboard score={score} wallet={activeWallet} />
+              </div>
+            </div>
+
+            {/* Privacy Explanation Banner */}
+            <motion.div 
+              className="mt-6 bg-gradient-to-r from-primary/10 via-surface to-accent/10 rounded-xl p-6 border border-gray-800"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl">🔐</span>
+                  <div>
+                    <p className="text-white font-medium">Zero-Knowledge Privacy in Action</p>
+                    <p className="text-gray-400 text-sm">
+                      Same user, different views. Banks verify claims without seeing underlying data.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-primary">{score.ficoDisplay}</p>
+                    <p className="text-xs text-gray-500">User sees</p>
+                  </div>
+                  <div className="text-gray-600">→</div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-accent">🔒</p>
+                    <p className="text-xs text-gray-500">Bank sees</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-surface-border px-6 py-3">
-        <div className="max-w-7xl mx-auto flex justify-between items-center text-xs text-text-muted">
-          <span>KarmaTrust MVP v0.1.0</span>
-          <span>ETHGlobal Hackathon</span>
+      <footer className="border-t border-gray-800 mt-12 py-6">
+        <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
+          <p>KarmaTrust MVP • ETHGlobal Hackathon 2026</p>
+          <p className="mt-1 text-xs text-gray-600">
+            Powered by Poseidon Hash, Groth16 ZK-SNARKs, and EAS Attestations
+          </p>
         </div>
       </footer>
+    </div>
+  );
+}
+
+// =============================================================================
+// SUB-COMPONENTS
+// =============================================================================
+
+function ViewToggle() {
+  const [view, setView] = useState<'user' | 'bank'>('user');
+
+  return (
+    <div className="inline-flex bg-surface rounded-lg p-1 border border-gray-800">
+      <button
+        onClick={() => setView('user')}
+        className={`px-4 py-1.5 rounded-md text-sm transition ${
+          view === 'user'
+            ? 'bg-primary text-black'
+            : 'text-gray-400 hover:text-white'
+        }`}
+      >
+        User View
+      </button>
+      <button
+        onClick={() => setView('bank')}
+        className={`px-4 py-1.5 rounded-md text-sm transition ${
+          view === 'bank'
+            ? 'bg-accent text-black'
+            : 'text-gray-400 hover:text-white'
+        }`}
+      >
+        Bank View
+      </button>
     </div>
   );
 }

@@ -1,83 +1,86 @@
 /**
- * Tailwind CSS Configuration for KarmaTrust
+ * Tailwind CSS Configuration
  * 
- * Design System: Bloomberg Professional + OKX Tech
+ * Design System: Bloomberg Terminal + OKX Tech
  * 
- * Colors:
- * - Primary: #00ff88 (neon green) - positive/user
- * - Accent: #ffd700 (gold) - premium/bank
- * - Background: #050505 (deep black) - terminal feel
- * 
- * Fonts:
- * - Mono: JetBrains Mono - for data/numbers
- * - Display: Space Grotesk - for headings
+ * Color Philosophy:
+ * - Primary (#00ff88): Trust, growth, success - used for positive indicators
+ * - Accent (#ffd700): Premium, value - used for highlights and warnings
+ * - Surface (#1a1a1a): Card backgrounds - subtle elevation
+ * - Background (#0a0a0a): Deep black - professional, minimal
  */
+
+/** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+  ],
   theme: {
     extend: {
       colors: {
-        // Primary palette
-        primary: {
-          DEFAULT: '#00ff88',
-          dim: 'rgba(0, 255, 136, 0.2)',
-          glow: 'rgba(0, 255, 136, 0.4)',
-        },
-        // Accent (financial/gold)
-        accent: {
-          DEFAULT: '#ffd700',
-          dim: 'rgba(255, 215, 0, 0.2)',
-          glow: 'rgba(255, 215, 0, 0.4)',
-        },
-        // Tech blue (OKX style)
-        tech: {
-          blue: '#00d4ff',
-          purple: '#a855f7',
-        },
-        // Background layers
-        background: {
-          DEFAULT: '#050505',
-          secondary: '#0a0a0a',
-          tertiary: '#111111',
-        },
-        // Surface (cards)
-        surface: {
-          DEFAULT: '#0a0a0a',
-          hover: '#111111',
-          border: '#1a1a1a',
-        },
-        // Risk colors
-        risk: {
-          low: '#00ff88',
-          medium: '#ffd700',
-          high: '#ff4444',
-        },
-        // Text
-        text: {
-          primary: '#ffffff',
-          secondary: '#a0a0a0',
-          muted: '#505050',
+        // Primary brand colors
+        primary: '#00ff88',
+        accent: '#ffd700',
+        
+        // Background colors
+        background: '#0a0a0a',
+        surface: '#1a1a1a',
+        
+        // Semantic colors
+        success: '#00ff88',
+        warning: '#ffd700',
+        error: '#ff4444',
+        
+        // Gray scale (custom for dark mode)
+        gray: {
+          50: '#fafafa',
+          100: '#f5f5f5',
+          200: '#e5e5e5',
+          300: '#d4d4d4',
+          400: '#a3a3a3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717',
+          950: '#0a0a0a',
         },
       },
+      
       fontFamily: {
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
-        display: ['Space Grotesk', 'Inter', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'SF Mono', 'monospace'],
       },
+      
+      fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '0.75rem' }],
+      },
+      
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+      },
+      
       boxShadow: {
-        'glow-green': '0 0 20px rgba(0, 255, 136, 0.4)',
-        'glow-gold': '0 0 20px rgba(255, 215, 0, 0.4)',
-        'glow-blue': '0 0 20px rgba(0, 212, 255, 0.4)',
+        'glow-sm': '0 0 10px rgba(0, 255, 136, 0.3)',
+        'glow': '0 0 20px rgba(0, 255, 136, 0.3)',
+        'glow-lg': '0 0 40px rgba(0, 255, 136, 0.4)',
+        'glow-accent': '0 0 20px rgba(255, 215, 0, 0.3)',
       },
+      
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
+        'glow': 'glow 2s ease-in-out infinite',
       },
+      
       keyframes: {
         glow: {
-          '0%': { boxShadow: '0 0 5px rgba(0, 255, 136, 0.2)' },
-          '100%': { boxShadow: '0 0 20px rgba(0, 255, 136, 0.6)' },
+          '0%, 100%': { boxShadow: '0 0 20px rgba(0, 255, 136, 0.3)' },
+          '50%': { boxShadow: '0 0 40px rgba(0, 255, 136, 0.5)' },
         },
       },
+      
       backdropBlur: {
         xs: '2px',
       },
