@@ -19,6 +19,7 @@ import ScoreCard from '../shared/ScoreCard';
 import FactorChart from '../shared/FactorChart';
 import AttestationCard from '../shared/AttestationCard';
 import ProofCard from '../shared/ProofCard';
+import StateCard from '../shared/StateCard';
 import { CreditScoreData } from '../../hooks/useCredit';
 
 // =============================================================================
@@ -112,6 +113,19 @@ export default function UserDashboard({ score, wallet }: UserDashboardProps) {
             wallet={wallet} 
             currentTier={score.level}
             currentTierName={score.levelName}
+          />
+        </motion.div>
+
+        {/* VCSM State */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <StateCard 
+            wallet={wallet}
+            currentLevel={score.level}
+            currentLevelName={score.levelName}
           />
         </motion.div>
 

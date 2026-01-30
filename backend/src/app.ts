@@ -16,7 +16,7 @@ import cors from 'cors';
 // Import routes
 import creditRoutes from './routes/credit.js';
 import zkpRoutes from './routes/zkp.js';
-// import vcsmRoutes from './routes/vcsm.js';     // Coming next
+import vcsmRoutes from './routes/vcsm.js';
 
 const app = express();
 
@@ -57,7 +57,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
       endpoints: {
         credit: '/api/credit/*',
         zkp: '/api/zkp/*',
-        vcsm: '/api/vcsm/* (coming soon)',
+        vcsm: '/api/vcsm/*',
       },
     },
   });
@@ -69,22 +69,8 @@ app.use('/api/credit', creditRoutes);
 // ZK proof routes
 app.use('/api/zkp', zkpRoutes);
 
-// VCSM routes (placeholder until implemented)
-app.post('/api/vcsm/init', (_req: Request, res: Response) => {
-  res.json({
-    success: false,
-    error: 'VCSM service not yet implemented',
-    meta: { timestamp: Date.now() },
-  });
-});
-
-app.get('/api/vcsm/state/:userId', (_req: Request, res: Response) => {
-  res.json({
-    success: false,
-    error: 'VCSM service not yet implemented',
-    meta: { timestamp: Date.now() },
-  });
-});
+// VCSM routes
+app.use('/api/vcsm', vcsmRoutes);
 
 
 // =============================================================================
