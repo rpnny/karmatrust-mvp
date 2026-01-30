@@ -17,6 +17,7 @@
 import { motion } from 'framer-motion';
 import ScoreCard from '../shared/ScoreCard';
 import FactorChart from '../shared/FactorChart';
+import AttestationCard from '../shared/AttestationCard';
 import { CreditScoreData } from '../../hooks/useCredit';
 
 // =============================================================================
@@ -89,6 +90,15 @@ export default function UserDashboard({ score, wallet }: UserDashboardProps) {
           transition={{ delay: 0.5 }}
         >
           <FactorChart factors={score.factors} />
+        </motion.div>
+
+        {/* EAS Attestation */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <AttestationCard wallet={wallet} />
         </motion.div>
 
         {/* Additional Info Section */}

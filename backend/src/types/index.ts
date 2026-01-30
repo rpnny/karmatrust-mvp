@@ -1,44 +1,47 @@
 /**
- * KarmaTrust Core Type Definitions
+ * Core Type Definitions for KarmaTrust
  * 
- * This file contains all shared types used across the backend.
+ * This file defines all shared types used across the backend.
  * 
- * Design Decision: Internal Score (0-100) as Single Source of Truth
- * - All business logic uses internal score
- * - FICO (300-850) is only for frontend display
- * - This avoids confusion between two score systems
+ * Type Design Philosophy:
+ * 1. Strong typing for all domain concepts
+ * 2. Enums for finite value sets (levels, risks)
+ * 3. Interfaces for structured data
+ * 4. Helper functions for type conversions
  */
 
 // =============================================================================
-// CREDIT SCORING
+// ENUMS
 // =============================================================================
 
 /**
  * Risk Level
  * 
- * Aligned with credit levels:
- * - Low: Diamond (90-100) & Platinum (80-89)
- * - Medium: Gold (60-79)
- * - High: Silver (40-59) & Bronze (0-39)
+ * Maps to traditional credit risk assessment:
+ * - Low: Excellent credit, minimal risk
+ * - Medium: Good credit, some risk
+ * - High: Poor credit, high risk
  */
 export type RiskLevel = 'Low' | 'Medium' | 'High';
 
 /**
- * Credit Level Enum
+ * Credit Level (VCSM States)
  * 
- * Score boundaries (internal score 0-100):
- * - Bronze: 0-39 (beginners, high risk)
- * - Silver: 40-59 (average users)
- * - Gold: 60-79 (good standing)
- * - Platinum: 80-89 (excellent)
- * - Diamond: 90-100 (top tier)
+ * Five-tier system inspired by credit card tiers:
+ * - UNVERIFIED (0): Not yet assessed
+ * - BRONZE (1): Score 0-39
+ * - SILVER (2): Score 40-59
+ * - GOLD (3): Score 60-79
+ * - PLATINUM (4): Score 80-89
+ * - DIAMOND (5): Score 90-100
  * 
- * Why these thresholds?
- * - Each level spans ~20 points for clear differentiation
- * - Top 2 tiers (80+) get "Low" risk for premium benefits
- * - Mirrors traditional credit tier systems
+ * Why these names?
+ * - Familiar to users (credit card tiers)
+ * - Clear progression (Bronze → Diamond)
+ * - Works well for UI display
  */
 export enum CreditLevel {
+  UNVERIFIED = 0,
   BRONZE = 1,
   SILVER = 2,
   GOLD = 3,
@@ -47,246 +50,10 @@ export enum CreditLevel {
 }
 
 /**
- * Score Factor Breakdown
- * 
- * Each factor is normalized to 0-1 range for visualization.
- * These are derived from wallet analysis data.
- */
-export interface ScoreFactors {
-  wallet_age: number;            // Time since first transaction
-  transaction_frequency: number;  // Activity level
-  protocol_diversity: number;     // Number of protocols used
-  asset_value: number;           // Total asset value in ETH
-  volatility: number;            // Asset price fluctuation
-  stability: number;             // Account activity consistency
-}
-
-/**
- * Credit Score Result
- * 
- * The main output of the credit scoring service.
- * 
- * Note: `score` is the internal score (0-100).
- * Frontend can convert to FICO using: 300 + (score * 5.5)
- */
-export interface CreditScore {
-  score: number;          // Internal score 0-100 (core value)
-  level: CreditLevel;     // Derived from score
-  levelName: string;      // Human-readable level name
-  risk: RiskLevel;        // Derived from score
-  factors: ScoreFactors;  // Factor breakdown for UI
-  wallet: string;         // Ethereum address
-  timestamp: number;      // Unix timestamp (ms)
-  meta?: {
-    dataSource: string;   // 'etherscan' | 'rpc' | 'deterministic'
-    version: string;      // Algorithm version
-  };
-}
-
-// =============================================================================
-// WALLET ANALYSIS
-// =============================================================================
-
-/**
- * Wallet Analysis Data
- * 
- * Raw data fetched from blockchain, used as input for scoring.
- * This is the intermediate data before score calculation.
- */
-export interface WalletAnalysis {
-  // Basic metrics
-  transactionCount: number;      // Total transactions
-  uniqueProtocols: number;       // Distinct protocols interacted
-  totalValue: number;            // Total asset value (ETH)
-  
-  // Time-based
-  firstTransaction: number;      // Timestamp of first tx
-  lastTransaction: number;       // Timestamp of last tx
-  
-  // Risk indicators
-  volatility: number;            // 0-1 (higher = more volatile)
-  highRiskInteractions: number;  // Count of risky protocol uses
-  scamConnections: boolean;      // Has interacted with known scams
-  mixerUsage: boolean;           // Has used mixing services
-}
-
-// =============================================================================
-// VCSM (Verifiable Credit State Machine)
-// =============================================================================
-
-/**
- * Credit State
- * 
- * The core state structure of VCSM.
- * 
- * Key concepts:
- * - stateHash: Poseidon(score, level, salt) - cryptographic commitment
- * - previousHash: Links to parent state (chain structure)
- * - version: Monotonically increasing (prevents replay)
- * - sybilScore: Anti-gaming metric (enforced in ZK circuit)
- */
-export interface CreditState {
-  // Identifiers
-  stateId: string;               // Unique state ID (UUID)
-  userId: string;                // User wallet address
-  
-  // Credit data
-  score: number;                 // Internal score 0-100 (private)
-  level: CreditLevel;            // Credit level (public)
-  
-  // Cryptographic commitments
-  stateHash: string;             // Poseidon(score, level, salt)
-  previousHash: string;          // Link to previous state
-  salt: string;                  // Random salt for privacy
-  
-  // Versioning
-  version: number;               // State version (monotonic)
-  timestamp: number;             // Last update time
-  
-  // Anti-sybil
-  sybilScore: number;            // 0-100, used in ZK constraints
-}
-
-/**
- * State Transition Rule
- * 
- * Defines conditions for upgrading credit levels.
- * 
- * Key innovation: circuitParams are enforced IN the ZK circuit,
- * meaning they cannot be bypassed by modifying client code.
- */
-export interface TransitionRule {
-  id: string;                    // Rule identifier
-  name: string;                  // Human-readable name
-  fromLevel: CreditLevel | 'ANY';
-  toLevel: CreditLevel;
-  
-  // Conditions (checked in backend)
-  conditions: {
-    minScore?: number;           // Minimum score required
-    minOnTimePayments?: number;  // Payment history (future)
-    maxDebtRatio?: number;       // Debt ratio (future)
-  };
-  
-  // ZK circuit parameters (enforced cryptographically!)
-  circuitParams?: {
-    minScoreRequired: number;    // Enforced in circuit
-    minPaymentsRequired: number; // Enforced in circuit
-    maxDebtRatioAllowed: number; // Enforced in circuit
-    minSybilScore: number;       // ANTI-SYBIL: Enforced in circuit!
-  };
-}
-
-/**
- * State Transition Result
- */
-export interface TransitionResult {
-  fromLevel: string;
-  toLevel: string;
-  proof: ZKProof | SimulatedProof;
-  newState: CreditState;
-}
-
-// =============================================================================
-// ZK PROOFS
-// =============================================================================
-
-/**
- * ZK Proof Structure (Groth16)
- * 
- * Generated by snarkjs, verified on-chain or off-chain.
- */
-export interface ZKProof {
-  proof: {
-    pi_a: string[];              // First proof element
-    pi_b: string[][];            // Second proof element (2D)
-    pi_c: string[];              // Third proof element
-  };
-  publicSignals: string[];       // Public inputs to circuit
-  circuitId: string;             // Which circuit generated this
-  proofId: string;               // Unique proof identifier
-}
-
-/**
- * Simulated Proof (for demo when circuit not compiled)
- */
-export interface SimulatedProof {
-  simulated: true;
-  pi_a: string[];
-  pi_b: string[][];
-  pi_c: string[];
-  publicSignals: string[];
-}
-
-/**
- * Proof Verification Result
- */
-export interface VerificationResult {
-  valid: boolean;
-  verifiedClaims: {
-    level?: string;              // e.g., ">= Gold"
-    sybilCheck?: string;         // "passed" | "failed"
-  };
-  timestamp: number;
-}
-
-// =============================================================================
-// EAS (Ethereum Attestation Service)
-// =============================================================================
-
-/**
- * EAS Attestation Result
- * 
- * Returned after creating an on-chain attestation.
- */
-export interface AttestationResult {
-  attestationId: string;         // bytes32 UID
-  explorerUrl: string;           // EASScan URL
-  schemaId: string;              // Schema identifier
-  recipient: string;             // Attestation recipient
-  txHash?: string;               // Transaction hash (if real)
-  isSimulated: boolean;          // True if no PRIVATE_KEY
-}
-
-/**
- * Attestation Data (decoded from on-chain)
- */
-export interface AttestationData {
-  attester: string;
-  recipient: string;
-  wallet: string;
-  score: number;
-  level: CreditLevel;
-  risk: RiskLevel;
-  timestamp: number;
-  isValid: boolean;
-}
-
-// =============================================================================
-// API RESPONSE
-// =============================================================================
-
-/**
- * Standard API Response Wrapper
- */
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  meta?: {
-    timestamp: number;
-    version: string;
-  };
-}
-
-// =============================================================================
-// UTILITY TYPES
-// =============================================================================
-
-/**
- * Level name mapping
+ * Level name mapping for display
  */
 export const LEVEL_NAMES: Record<CreditLevel, string> = {
+  [CreditLevel.UNVERIFIED]: 'Unverified',
   [CreditLevel.BRONZE]: 'Bronze',
   [CreditLevel.SILVER]: 'Silver',
   [CreditLevel.GOLD]: 'Gold',
@@ -294,47 +61,206 @@ export const LEVEL_NAMES: Record<CreditLevel, string> = {
   [CreditLevel.DIAMOND]: 'Diamond',
 };
 
+// =============================================================================
+// INTERFACES
+// =============================================================================
+
 /**
- * Convert score to level
+ * Score Factors
  * 
- * Why these thresholds?
- * - Diamond (90+): Top 10% users, exceptional on-chain history
- * - Platinum (80-89): Top 20%, excellent standing
- * - Gold (60-79): Top 50%, good users
- * - Silver (40-59): Average, building history
- * - Bronze (0-39): New or risky users
+ * Normalized factors (0-1) used for scoring and display.
+ * Each factor contributes to the final credit score.
  */
-export function scoreToLevel(score: number): CreditLevel {
-  if (score >= 90) return CreditLevel.DIAMOND;
-  if (score >= 80) return CreditLevel.PLATINUM;
-  if (score >= 60) return CreditLevel.GOLD;
-  if (score >= 40) return CreditLevel.SILVER;
-  return CreditLevel.BRONZE;
+export interface ScoreFactors {
+  wallet_age: number;           // 0-1: Account age (max at 2 years)
+  transaction_frequency: number; // 0-1: TX count (max at 500)
+  protocol_diversity: number;   // 0-1: Protocols used (max at 20)
+  asset_value: number;          // 0-1: ETH value (max at 100)
+  volatility: number;           // 0-1: Behavioral volatility (lower is better)
+  stability: number;            // 0-1: Recent activity pattern
 }
 
 /**
- * Convert score to risk
+ * Credit Score
  * 
- * Aligned with level boundaries:
- * - Low: Score >= 80 (Platinum, Diamond)
- * - Medium: Score >= 60 (Gold)
- * - High: Score < 60 (Silver, Bronze)
+ * Complete credit assessment result.
+ */
+export interface CreditScore {
+  score: number;                // Internal score: 0-100
+  level: CreditLevel;           // Tier: 0-5
+  levelName: string;            // Display name: "Gold"
+  risk: RiskLevel;              // Risk assessment
+  factors: ScoreFactors;        // Factor breakdown
+  wallet: string;               // Ethereum address
+  timestamp: number;            // Assessment time
+  dataSource?: string;          // Where data came from
+  trustLevel?: number;          // Data source trust (0-100)
+  meta?: {
+    dataSource: string;
+    version: string;
+  };
+}
+
+/**
+ * Wallet Analysis
+ * 
+ * Raw on-chain data fetched from blockchain.
+ * Used as input for credit scoring.
+ */
+export interface WalletAnalysis {
+  transactionCount: number;
+  uniqueProtocols: number;
+  totalValue: number;           // ETH balance
+  volatility: number;           // 0-1 calculated
+  firstTransaction: number;     // Unix timestamp
+  lastTransaction: number;      // Unix timestamp
+  highRiskInteractions: number;
+  scamConnections: boolean;
+  mixerUsage: boolean;
+}
+
+/**
+ * VCSM Credit State
+ * 
+ * Verifiable Credit State Machine state.
+ * Represents a user's credit state at a point in time.
+ */
+export interface CreditState {
+  stateId: string;              // UUID
+  userId: string;               // Wallet address
+  level: CreditLevel;           // Current tier
+  score: number;                // Internal score (private)
+  stateHash: string;            // Poseidon(score, level, salt)
+  previousHash: string;         // Chain link
+  salt: string;                 // Random salt for hash
+  version: number;              // Replay protection
+  timestamp: number;            // State creation time
+  attributes: {
+    onTimePayments: number;
+    defaultCount: number;
+    debtRatio: number;
+    kycVerified: boolean;
+  };
+}
+
+/**
+ * EAS Attestation Result
+ * 
+ * Result from creating an EAS attestation.
+ */
+export interface AttestationResult {
+  attestationId: string;        // bytes32 UID
+  explorerUrl: string;          // EASScan URL
+  schemaId: string;             // Schema UID
+  recipient: string;            // Attested wallet
+  txHash?: string;              // Transaction hash (if real)
+  blockNumber?: number;         // Block number (if real)
+  isSimulated?: boolean;        // Whether this is a simulation
+}
+
+/**
+ * ZK Proof
+ * 
+ * Zero-knowledge proof structure (Groth16).
+ */
+export interface ZKProof {
+  pi_a: string[];               // G1 point
+  pi_b: string[][];             // G2 point
+  pi_c: string[];               // G1 point
+  publicSignals: string[];      // Public inputs
+  protocol?: string;            // "groth16"
+  curve?: string;               // "bn128"
+}
+
+/**
+ * API Response Wrapper
+ * 
+ * Standard response format for all API endpoints.
+ */
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  meta?: {
+    timestamp: number;
+    version?: string;
+    processingTimeMs?: number;
+  };
+}
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Convert internal score (0-100) to credit level
+ */
+export function scoreToLevel(score: number): CreditLevel {
+  if (score < 0) return CreditLevel.UNVERIFIED;
+  if (score < 40) return CreditLevel.BRONZE;
+  if (score < 60) return CreditLevel.SILVER;
+  if (score < 80) return CreditLevel.GOLD;
+  if (score < 90) return CreditLevel.PLATINUM;
+  return CreditLevel.DIAMOND;
+}
+
+/**
+ * Convert internal score (0-100) to risk level
  */
 export function scoreToRisk(score: number): RiskLevel {
-  if (score >= 80) return 'Low';
-  if (score >= 60) return 'Medium';
+  if (score >= 70) return 'Low';
+  if (score >= 50) return 'Medium';
   return 'High';
 }
 
 /**
- * Convert internal score to FICO display
+ * Convert internal score (0-100) to FICO-style display (300-850)
  * 
- * Formula: FICO = 300 + (internalScore * 5.5)
- * - Score 0 → FICO 300
- * - Score 100 → FICO 850
+ * Why FICO display?
+ * - Banks understand 300-850 range
+ * - Users familiar with FICO from traditional credit
+ * - Makes demo more relatable
  * 
- * Note: This is ONLY for display. All logic uses internal score.
+ * Formula: FICO = 300 + (internal_score * 5.5)
+ * - Internal 0 → FICO 300 (worst)
+ * - Internal 50 → FICO 575 (average)
+ * - Internal 100 → FICO 850 (best)
  */
-export function scoreToFICO(score: number): number {
-  return Math.round(300 + score * 5.5);
+export function scoreToFICO(internalScore: number): number {
+  const fico = 300 + (internalScore * 5.5);
+  return Math.round(Math.max(300, Math.min(850, fico)));
+}
+
+/**
+ * Convert FICO score back to internal (for thresholds)
+ */
+export function ficoToScore(ficoScore: number): number {
+  const internal = (ficoScore - 300) / 5.5;
+  return Math.round(Math.max(0, Math.min(100, internal)));
+}
+
+/**
+ * Get level thresholds for upgrade requirements
+ */
+export function getLevelThresholds(level: CreditLevel): {
+  minScore: number;
+  minPayments: number;
+  maxDebtRatio: number;
+  minSybilScore: number;
+} {
+  const thresholds: Record<CreditLevel, {
+    minScore: number;
+    minPayments: number;
+    maxDebtRatio: number;
+    minSybilScore: number;
+  }> = {
+    [CreditLevel.UNVERIFIED]: { minScore: 0, minPayments: 0, maxDebtRatio: 100, minSybilScore: 0 },
+    [CreditLevel.BRONZE]: { minScore: 0, minPayments: 0, maxDebtRatio: 100, minSybilScore: 0 },
+    [CreditLevel.SILVER]: { minScore: 40, minPayments: 3, maxDebtRatio: 70, minSybilScore: 20 },
+    [CreditLevel.GOLD]: { minScore: 60, minPayments: 6, maxDebtRatio: 50, minSybilScore: 35 },
+    [CreditLevel.PLATINUM]: { minScore: 80, minPayments: 12, maxDebtRatio: 40, minSybilScore: 50 },
+    [CreditLevel.DIAMOND]: { minScore: 90, minPayments: 24, maxDebtRatio: 30, minSybilScore: 70 },
+  };
+
+  return thresholds[level];
 }
