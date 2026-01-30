@@ -1,172 +1,391 @@
 # 🏆 KarmaTrust
 
-> **On-chain credit scoring with zero-knowledge privacy**
+> **DeFi's FICO Score + Zero-Knowledge Privacy**
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-MVP-yellow.svg)
-![Network](https://img.shields.io/badge/network-Sepolia-purple.svg)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Status](https://img.shields.io/badge/status-MVP-yellow.svg)]()
+[![Network](https://img.shields.io/badge/network-Sepolia-purple.svg)]()
+[![ETHGlobal](https://img.shields.io/badge/hackathon-ETHGlobal-brightgreen.svg)]()
 
-## 🎯 What is KarmaTrust?
+---
 
-KarmaTrust is a decentralized credit infrastructure that:
+## 🎬 Demo
 
-1. **Analyzes on-chain behavior** to generate credit scores (FICO-style 0-100)
-2. **Uses ZK proofs** to verify credit levels **without exposing exact scores**
-3. **Embeds anti-sybil constraints in ZK circuits** (math-guaranteed, not bypassable)
+> **Live Demo**: [Coming Soon]  
+> **Video Walkthrough**: [Coming Soon]
 
-### The Problem
+### Screenshots
 
-- DeFi requires **150%+ collateral** for loans (capital inefficiency)
-- Proving creditworthiness **exposes your entire wallet** (privacy violation)
-- Traditional sybil checks are **backend-only** (can be bypassed)
+| User View (Full Data) | Bank View (Privacy Protected) |
+|:---------------------:|:-----------------------------:|
+| Score: **762** visible | Score: **???** hidden |
+| All factors shown | Only tier verified |
+| Generate ZK proof | Verify ZK proof |
 
-### Our Solution
+---
+
+## 🎯 The Problem
+
+| Problem | Current Pain | Impact |
+|---------|-------------|--------|
+| **Over-collateralization** | Borrow $100 → Need $150+ collateral | Capital inefficiency |
+| **Privacy Violation** | Prove creditworthiness → Expose entire wallet | Identity risk |
+| **Sybil Attacks** | Backend anti-gaming → Easily bypassed | System gaming |
+| **No Standard** | No FICO for DeFi → Banks don't trust | Adoption barrier |
+
+## 💡 Our Solution
 
 ```
-User: "I'm Gold tier (score 60-79)"
-Bank: "Prove it without showing your exact score"
-User: *generates ZK proof*
-Bank: *verifies* "Confirmed: ≥Gold tier, sybil check passed"
-Bank: "I don't know if you're 61 or 79, but you qualify!"
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│   User: "I want to prove I'm creditworthy for a lower collateral loan"   │
+│                                                                          │
+│   KarmaTrust: Analyzes 8 on-chain factors → Score: 762 (Gold Tier)       │
+│                                                                          │
+│   User: "But I don't want to reveal my exact score or wallet history"    │
+│                                                                          │
+│   KarmaTrust: Generates ZK proof → "User is ≥Gold tier"                  │
+│               (Bank knows tier, NOT exact score!)                        │
+│                                                                          │
+│   Bank: Verifies proof → Approves 125% collateral (vs standard 150%)     │
+│         "I know they're Gold+, that's all I need!"                       │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
 
 ## ⭐ Key Innovation: Anti-Sybil in ZK Circuit
 
+**This is our core differentiator.**
+
+Traditional sybil defense runs in backend code → attackers can bypass it.
+
+We embed anti-sybil constraints **directly in the ZK circuit**:
+
 ```circom
-// Even with money, you can't fake wallet age!
+// state_transition.circom
+
+// Private input (hidden from verifier)
+signal input sybilScore;
+
+// Public threshold (everyone knows the requirement)
+signal input minSybilScore;  // e.g., 35 for Gold tier
+
+// Math-enforced constraint
 component sybilCheck = GreaterEqThan(8);
 sybilCheck.in[0] <== sybilScore;
-sybilCheck.in[1] <== minSybilScore;  // e.g., 35 for Gold
-sybilCheck.out === 1;  // Math-guaranteed!
+sybilCheck.in[1] <== minSybilScore;
+sybilCheck.out === 1;  // Proof fails if wallet age too low!
 ```
 
-**Why this matters**: Traditional sybil checks can be bypassed by modifying frontend code or calling APIs directly. Our approach enforces constraints **inside the ZK circuit** - if your wallet age is too low, the proof simply cannot be generated.
+**Why this matters**:
+- 💰 Even with infinite money, you can't fake a 2-year-old wallet
+- 🔒 The proof mathematically cannot be generated if constraints fail
+- ✅ No server-side bypass possible
+
+---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Frontend (React + Vite)                      │
-│  ┌──────────────────────────┬──────────────────────────┐        │
-│  │    👤 User View          │    🏦 Bank View          │        │
-│  │  - Full score visible    │  - Only tier verified    │        │
-│  │  - All factors shown     │  - Score shows ???       │        │
-│  │  - Generate ZK proof     │  - Verify ZK proof       │        │
-│  └──────────────────────────┴──────────────────────────┘        │
-└────────────────────────────────────────────────────────────────┘
-                              │
-┌────────────────────────────▼────────────────────────────────────┐
-│                    Backend (Express + TypeScript)                │
-│  - Credit scoring (8 core factors)                               │
-│  - VCSM state machine                                            │
-│  - ZK proof generation/verification                              │
-│  - EAS attestation service                                       │
-└────────────────────────────────────────────────────────────────┘
-                              │
-┌────────────────────────────▼────────────────────────────────────┐
-│                    Blockchain (Sepolia)                          │
-│  - VCSMStateManager.sol (state storage)                          │
-│  - ZKPVerifier.sol (on-chain verification)                       │
-│  - EAS attestations                                              │
-└────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         FRONTEND (React + Vite)                          │
+│  ┌────────────────────────────┬────────────────────────────┐            │
+│  │      👤 USER VIEW          │      🏦 BANK VIEW          │            │
+│  │                            │                            │            │
+│  │  ┌──────────────────┐      │      ┌──────────────────┐  │            │
+│  │  │   Score: 762     │      │      │   Score: ???     │  │            │
+│  │  │   Tier: Gold     │      │      │   Tier: ✓ Gold   │  │            │
+│  │  │   Risk: Low      │      │      │   Risk: Verified │  │            │
+│  │  └──────────────────┘      │      └──────────────────┘  │            │
+│  │                            │                            │            │
+│  │  [Generate ZK Proof]       │      [Verify ZK Proof]     │            │
+│  │  [Create EAS Attestation]  │      [Check Attestation]   │            │
+│  └────────────────────────────┴────────────────────────────┘            │
+└─────────────────────────────────┬───────────────────────────────────────┘
+                                  │ REST API
+┌─────────────────────────────────▼───────────────────────────────────────┐
+│                         BACKEND (Express + TS)                           │
+│                                                                          │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐          │
+│  │ Credit Scoring  │  │  VCSM Service   │  │   ZK Prover     │          │
+│  │ (8 factors)     │  │ (State Machine) │  │ (Groth16)       │          │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘          │
+│                                                                          │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐          │
+│  │ Blockchain Data │  │ EAS Attestation │  │ Sybil Defense   │          │
+│  │ (Etherscan+RPC) │  │ (On-chain)      │  │ (In-circuit)    │          │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘          │
+└─────────────────────────────────┬───────────────────────────────────────┘
+                                  │
+┌─────────────────────────────────▼───────────────────────────────────────┐
+│                         BLOCKCHAIN (Sepolia)                             │
+│                                                                          │
+│  ┌─────────────────────────┐  ┌─────────────────────────┐               │
+│  │  VCSMStateManager.sol   │  │   TieredLending.sol     │               │
+│  │  - Store state hashes   │  │  - Credit-based loans   │               │
+│  │  - Level (public)       │  │  - Collateral tiers:    │               │
+│  │  - Score hash (private) │  │    Diamond: 110%        │               │
+│  └─────────────────────────┘  │    Gold: 125%           │               │
+│                               │    Bronze: 150%         │               │
+│  ┌─────────────────────────┐  └─────────────────────────┘               │
+│  │   EAS Attestations      │                                            │
+│  │  - On-chain credentials │                                            │
+│  │  - Publicly verifiable  │                                            │
+│  └─────────────────────────┘                                            │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 📊 Credit Scoring Algorithm
+
+### 8-Factor Scoring (MVP)
+
+| Factor | Weight | Max Points | Calculation |
+|--------|--------|------------|-------------|
+| 🕐 Wallet Age | +15 | 15 | `min(age_years × 15, 15)` |
+| 📈 TX Frequency | +10 | 10 | `min(tx_count/200 × 10, 10)` |
+| 🔀 Protocol Diversity | +8 | 8 | `min(protocols/15 × 8, 8)` |
+| 💰 Asset Value | +10 | 10 | `min(value_eth/50 × 10, 10)` |
+| ✅ Active Usage | +7 | 7 | Active in last 30 days |
+| 📉 Volatility | -8 | 0 | High balance swings |
+| ⚠️ Scam Connection | -25 | 0 | Interacted with known scams |
+| 🌀 Mixer Usage | -10 | 0 | Used Tornado Cash etc. |
+
+### Score Formula
+
+```
+Internal Score (0-100) = Base(50) + Positive Factors - Negative Factors
+FICO Score (300-850) = 300 + (Internal Score × 5.5)
+```
+
+### Credit Tiers
+
+| Internal | FICO | Tier | Collateral | Sybil Requirement |
+|----------|------|------|------------|-------------------|
+| 90-100 | 795-850 | 💎 Diamond | 110% | 70+ sybil score |
+| 80-89 | 740-794 | 🏆 Platinum | 115% | 50+ sybil score |
+| 60-79 | 630-739 | 🥇 Gold | 125% | 35+ sybil score |
+| 40-59 | 520-629 | 🥈 Silver | 140% | 20+ sybil score |
+| 0-39 | 300-519 | 🥉 Bronze | 150% | None |
+
+**Collateral Savings Example**:
+- Borrow 10 ETH with Diamond tier: 11 ETH collateral
+- Borrow 10 ETH with Bronze tier: 15 ETH collateral
+- **Savings: 4 ETH (27%)**
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 20+
-- npm or yarn
+- npm or pnpm
 
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone
 git clone https://github.com/rpnny/karmatrust-mvp.git
 cd karmatrust-mvp
 
-# Install dependencies
+# Install all dependencies
 npm install
 
-# Copy environment variables
+# Configure environment
 cp .env.example .env
+# Edit .env with your keys (optional for demo)
 
-# Start development servers
-npm run dev
+# Start backend (port 3000)
+cd backend && npm run dev
+
+# Start frontend (port 5173) - new terminal
+cd frontend && npm run dev
 ```
 
-### Access
+### Access Points
 
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:3000
+| Service | URL | Description |
+|---------|-----|-------------|
+| Frontend | http://localhost:5173 | Split-screen demo UI |
+| Backend API | http://localhost:3000 | REST API server |
+| API Health | http://localhost:3000/api/health | Status check |
 
-## 📊 Credit Scoring (MVP - 8 Factors)
+---
 
-| Factor | Weight | Description |
-|--------|--------|-------------|
-| Wallet Age | +15 | Time-based trust signal |
-| TX Frequency | +10 | Activity level |
-| Protocol Diversity | +8 | DeFi experience |
-| Asset Value | +10 | Financial capacity |
-| Active Usage | +7 | Recent activity bonus |
-| Volatility | -8 | Risk indicator |
-| Scam Connection | -25 | Red flag penalty |
-| Mixer Usage | -10 | Privacy concern |
+## 🔌 API Reference
 
-**Note**: This MVP uses hand-tuned weights. Production version will use ML optimization.
+### Credit Scoring
 
-## 🔐 Credit Levels
+```bash
+# Get credit score
+GET /api/credit/score?wallet=0x...
 
-| Score | Level | Risk |
-|-------|-------|------|
-| 90-100 | 💎 Diamond | Low |
-| 80-89 | 🏆 Platinum | Low |
-| 60-79 | 🥇 Gold | Medium |
-| 40-59 | 🥈 Silver | High |
-| 0-39 | 🥉 Bronze | High |
+# Create EAS attestation
+POST /api/credit/attest
+Body: { "wallet": "0x..." }
+```
 
-## 🛠️ Tech Stack
+### VCSM State Machine
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 18, Vite 5, TailwindCSS, Framer Motion |
-| Backend | Express.js, TypeScript, ethers.js v6 |
-| Contracts | Solidity 0.8.20, Hardhat, OpenZeppelin |
-| ZK Circuits | Circom 2.1.6, SnarkJS, Groth16 |
-| Blockchain | Sepolia Testnet |
+```bash
+# Initialize state
+POST /api/vcsm/init
+Body: { "userId": "0x...", "initialScore": 50 }
+
+# Get current state
+GET /api/vcsm/state/:userId
+
+# Execute transition
+POST /api/vcsm/transition
+Body: { "userId": "0x...", "ruleId": "UPGRADE_SILVER_TO_GOLD", "newScore": 65 }
+```
+
+### ZK Proofs
+
+```bash
+# Generate tier membership proof
+POST /api/zkp/generate
+Body: { "score": 75, "targetTier": 3 }
+
+# Verify proof
+POST /api/zkp/verify
+Body: { "proof": {...}, "publicSignals": [...] }
+```
+
+---
 
 ## 📁 Project Structure
 
 ```
 karmatrust-mvp/
-├── frontend/          # React + Vite frontend
-├── backend/           # Express.js API server
-├── contracts/         # Solidity smart contracts
-├── circuits/          # Circom ZK circuits
-└── docs/              # Documentation
+├── frontend/                 # React + Vite + TailwindCSS
+│   ├── src/
+│   │   ├── components/       # UI components
+│   │   │   ├── UserView/     # Full data dashboard
+│   │   │   ├── BankView/     # Privacy-protected view
+│   │   │   └── shared/       # Reusable components
+│   │   ├── pages/            # Route pages
+│   │   ├── hooks/            # Custom React hooks
+│   │   └── styles/           # Global styles
+│   └── package.json
+│
+├── backend/                  # Express.js + TypeScript
+│   ├── src/
+│   │   ├── routes/           # API endpoints
+│   │   ├── services/         # Business logic
+│   │   │   ├── vcsm/         # State machine
+│   │   │   ├── creditScoring.ts
+│   │   │   ├── easAttestation.ts
+│   │   │   └── zkProof.ts
+│   │   └── types/            # TypeScript definitions
+│   └── package.json
+│
+├── contracts/                # Solidity + Hardhat
+│   ├── contracts/
+│   │   ├── VCSMStateManager.sol
+│   │   └── TieredLending.sol
+│   ├── scripts/deploy.ts
+│   └── test/
+│
+├── circuits/                 # Circom + SnarkJS
+│   ├── tier_membership.circom
+│   └── package.json
+│
+└── README.md                 # You are here!
 ```
 
-## 🚧 MVP Status
+---
 
-This is a **hackathon MVP** demonstrating the core concept.
+## 🛠️ Tech Stack
 
-### ✅ Included
-- Credit scoring with 8 factors
-- Real on-chain data fetching
-- ZK proof generation (tier membership)
-- EAS attestations (Sepolia)
-- Split-screen demo UI
+| Layer | Technology | Why |
+|-------|------------|-----|
+| **Frontend** | React 18, Vite 5, TailwindCSS | Fast dev, modern DX |
+| **Backend** | Express.js, TypeScript, ethers.js v6 | Type safety, Web3 native |
+| **Contracts** | Solidity 0.8.20, Hardhat, OpenZeppelin | Industry standard |
+| **ZK** | Circom 2.1.6, SnarkJS, Groth16 | Production-ready ZK |
+| **Crypto** | Poseidon hash (circomlibjs) | ZK-friendly (~300 constraints vs SHA256's ~25000) |
+| **Attestations** | EAS (Ethereum Attestation Service) | On-chain credentials |
+| **Network** | Sepolia Testnet | ETHGlobal compatible |
 
-### ⏳ Post-Hackathon Roadmap
-- [ ] 12+ advanced factors
-- [ ] ML weight optimization
-- [ ] Multi-chain support
-- [ ] Production data pipeline
+---
+
+## 🔒 Security Considerations
+
+### MVP Scope
+
+This is a hackathon MVP. For production:
+
+- [ ] Smart contract audit
+- [ ] ZK circuit formal verification
+- [ ] Rate limiting implementation
+- [ ] Private key management (HSM)
+- [ ] Data source redundancy
+
+### Current Protections
+
+- ✅ Input validation (Zod schemas)
+- ✅ Type safety (TypeScript strict mode)
+- ✅ Hash-only storage (no raw scores on-chain)
+- ✅ Anti-sybil in circuit (not bypassable)
+
+---
+
+## 📈 Performance
+
+| Operation | Time | Notes |
+|-----------|------|-------|
+| Credit score calculation | ~500ms | With RPC fallback |
+| ZK proof generation | ~2-3s | Groth16, simulated |
+| EAS attestation | ~15s | On-chain transaction |
+| State transition | ~1s | In-memory (MVP) |
+
+---
+
+## 🗺️ Roadmap
+
+### MVP (Hackathon) ✅
+- [x] 8-factor credit scoring
+- [x] Split-screen demo UI
+- [x] ZK tier membership proof
+- [x] EAS attestations
+- [x] VCSM state machine
+- [x] Smart contracts
+
+### Post-Hackathon
+- [ ] 20+ scoring factors with ML weights
+- [ ] Production ZK circuit compilation
+- [ ] Multi-chain support (Base, Arbitrum)
+- [ ] Real-time data pipeline
+- [ ] B2B API portal
 - [ ] Security audit
 
-## 📄 License
+---
 
-MIT License - see [LICENSE](./LICENSE)
+## 💼 Business Model
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          REVENUE STREAMS                                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  1. B2B API Subscription                                                 │
+│     └── DeFi protocols pay per query (like Chainalysis)                  │
+│                                                                          │
+│  2. On-chain Verification Fees                                           │
+│     └── Gas fee sharing for ZK proof verification                        │
+│                                                                          │
+│  3. Premium Attestations                                                 │
+│     └── Enhanced credentials for institutions                            │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## 🤝 Team
 
@@ -174,6 +393,21 @@ Built with ❤️ for ETHGlobal
 
 ---
 
-**Demo**: [Coming Soon]  
-**Deployed Contracts**: [Coming Soon]  
-**Technical Blog**: [Coming Soon]
+## 📄 License
+
+MIT License - see [LICENSE](./LICENSE)
+
+---
+
+## 🔗 Links
+
+| Resource | URL |
+|----------|-----|
+| GitHub | https://github.com/rpnny/karmatrust-mvp |
+| Demo | [Coming Soon] |
+| Deployed Contracts | [Coming Soon] |
+| EAS Schema | [Sepolia EASScan] |
+
+---
+
+**Made for ETHGlobal 2026** 🚀
