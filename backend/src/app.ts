@@ -6,16 +6,17 @@
  * Design Decisions:
  * - CORS enabled for frontend development (localhost:5173)
  * - JSON body parsing with size limit
+ * - Request logging for debugging
  * - Error handling middleware at the end
  */
 
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 
-// Import routes (will be implemented in subsequent commits)
-// import creditRoutes from './routes/credit.js';
-// import vcsmRoutes from './routes/vcsm.js';
-// import zkpRoutes from './routes/zkp.js';
+// Import routes
+import creditRoutes from './routes/credit.js';
+// import vcsmRoutes from './routes/vcsm.js';     // Coming next
+// import zkpRoutes from './routes/zkp.js';       // Coming later
 
 const app = express();
 
@@ -35,7 +36,8 @@ app.use(express.json({ limit: '10mb' }));
 
 // Request logging (simple version for hackathon)
 app.use((req: Request, _res: Response, next: NextFunction) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  const timestamp = new Date().toISOString().slice(11, 23);
+  console.log(`[${timestamp}] ${req.method} ${req.path}`);
   next();
 });
 
@@ -52,28 +54,40 @@ app.get('/api/health', (_req: Request, res: Response) => {
       timestamp: Date.now(),
       version: '0.1.0-mvp',
       service: 'karmatrust-api',
+      endpoints: {
+        credit: '/api/credit/*',
+        vcsm: '/api/vcsm/* (coming soon)',
+        zkp: '/api/zkp/* (coming soon)',
+      },
     },
   });
 });
 
-// API routes (to be implemented)
-// app.use('/api/credit', creditRoutes);
-// app.use('/api/vcsm', vcsmRoutes);
-// app.use('/api/zkp', zkpRoutes);
+// Credit scoring routes
+app.use('/api/credit', creditRoutes);
 
-// Placeholder routes (will be replaced)
-app.get('/api/credit/score', (_req: Request, res: Response) => {
+// VCSM routes (placeholder until implemented)
+app.post('/api/vcsm/init', (_req: Request, res: Response) => {
   res.json({
     success: false,
-    error: 'Credit scoring service not yet implemented',
+    error: 'VCSM service not yet implemented',
     meta: { timestamp: Date.now() },
   });
 });
 
-app.post('/api/credit/attest', (_req: Request, res: Response) => {
+app.get('/api/vcsm/state/:userId', (_req: Request, res: Response) => {
   res.json({
     success: false,
-    error: 'EAS attestation service not yet implemented',
+    error: 'VCSM service not yet implemented',
+    meta: { timestamp: Date.now() },
+  });
+});
+
+// ZKP routes (placeholder until implemented)
+app.post('/api/zkp/verify', (_req: Request, res: Response) => {
+  res.json({
+    success: false,
+    error: 'ZKP service not yet implemented',
     meta: { timestamp: Date.now() },
   });
 });
