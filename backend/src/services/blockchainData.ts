@@ -40,11 +40,12 @@ const DATA_SOURCES = {
   deterministic: { name: 'deterministic', trustLevel: 20 },
 };
 
-// RPC URLs with fallbacks
+// RPC URLs with fallbacks (ordered by reliability)
 const RPC_URLS = [
-  process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com',
-  process.env.ETHEREUM_RPC_URL || 'https://eth.llamarpc.com',
-  'https://rpc.ankr.com/eth',
+  process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia.gateway.tatum.io',  // Tatum (recommended)
+  'https://ethereum-sepolia-rpc.publicnode.com',                                // Public node
+  process.env.ETHEREUM_RPC_URL || 'https://eth.llamarpc.com',                   // Mainnet fallback
+  'https://rpc.ankr.com/eth',                                                   // Ankr
 ];
 
 // Etherscan API configuration
