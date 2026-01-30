@@ -1,0 +1,240 @@
+/**
+ * KarmaTrust Global Styles
+ * 
+ * Design System: Bloomberg Professional + OKX Tech
+ * 
+ * Key characteristics:
+ * - Deep black backgrounds (#050505)
+ * - Neon green primary (#00ff88)
+ * - Gold accents (#ffd700)
+ * - Terminal-style typography
+ * - Glow effects for emphasis
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================================================
+   CSS VARIABLES
+   ============================================================================= */
+
+:root {
+  /* Primary palette */
+  --color-primary: #00ff88;
+  --color-primary-dim: rgba(0, 255, 136, 0.2);
+  --color-primary-glow: rgba(0, 255, 136, 0.4);
+  
+  /* Accent (financial gold) */
+  --color-accent: #ffd700;
+  --color-accent-dim: rgba(255, 215, 0, 0.2);
+  
+  /* Background layers */
+  --color-bg: #050505;
+  --color-bg-secondary: #0a0a0a;
+  --color-bg-tertiary: #111111;
+  
+  /* Surface (cards) */
+  --color-surface: #0a0a0a;
+  --color-border: #1a1a1a;
+  
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0a0;
+  --color-text-muted: #505050;
+}
+
+/* =============================================================================
+   BASE STYLES
+   ============================================================================= */
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: 'Space Grotesk', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling (Bloomberg terminal feel) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a2a;
+}
+
+/* Selection */
+::selection {
+  background: var(--color-primary-dim);
+  color: var(--color-primary);
+}
+
+/* =============================================================================
+   COMPONENT CLASSES
+   ============================================================================= */
+
+@layer components {
+  /* Card with glass morphism + glow border */
+  .card {
+    @apply bg-surface rounded-xl border border-surface-border;
+    @apply backdrop-blur-sm;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.01) 100%
+    );
+  }
+  
+  .card:hover {
+    @apply border-primary/30;
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+  }
+  
+  /* Primary button with glow */
+  .btn-primary {
+    @apply px-6 py-3 rounded-lg font-semibold;
+    @apply bg-gradient-to-r from-primary to-tech-blue;
+    @apply text-background;
+    @apply transition-all duration-300;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+  }
+  
+  .btn-primary:hover {
+    @apply transform -translate-y-0.5;
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+  }
+  
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    @apply transform-none;
+    box-shadow: none;
+  }
+  
+  /* Secondary button (outlined) */
+  .btn-secondary {
+    @apply px-6 py-3 rounded-lg font-semibold;
+    @apply bg-transparent border border-accent text-accent;
+    @apply transition-all duration-300;
+  }
+  
+  .btn-secondary:hover {
+    @apply bg-accent/10;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+  }
+  
+  /* Input field */
+  .input {
+    @apply w-full px-4 py-3 rounded-lg;
+    @apply bg-background border border-surface-border;
+    @apply text-white placeholder-text-muted;
+    @apply focus:border-primary focus:outline-none;
+    @apply transition-colors duration-200;
+  }
+  
+  /* Terminal-style label */
+  .label {
+    @apply text-xs uppercase tracking-wider text-text-secondary;
+    @apply font-mono;
+  }
+  
+  /* Monospace data display */
+  .data-value {
+    @apply font-mono text-primary;
+  }
+  
+  /* Score display (large number) */
+  .score-display {
+    @apply text-5xl font-bold font-mono;
+    @apply text-primary;
+    text-shadow: 0 0 30px var(--color-primary-glow);
+  }
+  
+  /* Level badge */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full;
+    @apply text-xs font-semibold uppercase tracking-wider;
+  }
+  
+  .badge-low {
+    @apply bg-risk-low/20 text-risk-low;
+  }
+  
+  .badge-medium {
+    @apply bg-risk-medium/20 text-risk-medium;
+  }
+  
+  .badge-high {
+    @apply bg-risk-high/20 text-risk-high;
+  }
+  
+  /* Divider with gradient */
+  .divider {
+    @apply h-px w-full;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-primary-dim) 50%,
+      transparent 100%
+    );
+  }
+  
+  /* Privacy mask (shows ??? for hidden data) */
+  .privacy-mask {
+    @apply font-mono text-text-muted;
+    filter: blur(4px);
+    user-select: none;
+  }
+}
+
+/* =============================================================================
+   ANIMATIONS
+   ============================================================================= */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--color-primary-dim);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--color-primary-glow);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

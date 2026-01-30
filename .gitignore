@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# Hardhat
+cache/
+artifacts/
+typechain-types/
+
+# ZK Circuits (keep source, ignore build artifacts)
+circuits/build/*.wasm
+circuits/build/*.r1cs
+circuits/build/*.sym
+circuits/build/*.zkey
+circuits/ptau/*.ptau
+
+# Misc
+*.tsbuildinfo
+.turbo
