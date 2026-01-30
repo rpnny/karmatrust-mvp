@@ -15,8 +15,8 @@ import cors from 'cors';
 
 // Import routes
 import creditRoutes from './routes/credit.js';
+import zkpRoutes from './routes/zkp.js';
 // import vcsmRoutes from './routes/vcsm.js';     // Coming next
-// import zkpRoutes from './routes/zkp.js';       // Coming later
 
 const app = express();
 
@@ -56,8 +56,8 @@ app.get('/api/health', (_req: Request, res: Response) => {
       service: 'karmatrust-api',
       endpoints: {
         credit: '/api/credit/*',
+        zkp: '/api/zkp/*',
         vcsm: '/api/vcsm/* (coming soon)',
-        zkp: '/api/zkp/* (coming soon)',
       },
     },
   });
@@ -65,6 +65,9 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 // Credit scoring routes
 app.use('/api/credit', creditRoutes);
+
+// ZK proof routes
+app.use('/api/zkp', zkpRoutes);
 
 // VCSM routes (placeholder until implemented)
 app.post('/api/vcsm/init', (_req: Request, res: Response) => {
@@ -83,14 +86,6 @@ app.get('/api/vcsm/state/:userId', (_req: Request, res: Response) => {
   });
 });
 
-// ZKP routes (placeholder until implemented)
-app.post('/api/zkp/verify', (_req: Request, res: Response) => {
-  res.json({
-    success: false,
-    error: 'ZKP service not yet implemented',
-    meta: { timestamp: Date.now() },
-  });
-});
 
 // =============================================================================
 // ERROR HANDLING

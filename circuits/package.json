@@ -1,0 +1,22 @@
+{
+  "name": "karmatrust-circuits",
+  "version": "1.0.0",
+  "description": "ZK circuits for KarmaTrust credit verification",
+  "private": true,
+  "scripts": {
+    "compile": "circom tier_membership.circom --r1cs --wasm --sym -o build",
+    "setup": "snarkjs groth16 setup build/tier_membership.r1cs ptau/pot14_final.ptau build/tier_membership.zkey",
+    "contribute": "snarkjs zkey contribute build/tier_membership.zkey build/tier_membership_final.zkey --name='KarmaTrust Contributor'",
+    "export-vkey": "snarkjs zkey export verificationkey build/tier_membership_final.zkey build/verification_key.json",
+    "export-verifier": "snarkjs zkey export solidityverifier build/tier_membership_final.zkey ../contracts/contracts/Groth16Verifier.sol",
+    "prove": "snarkjs groth16 prove build/tier_membership_final.zkey build/tier_membership_js/witness.wtns build/proof.json build/public.json",
+    "verify": "snarkjs groth16 verify build/verification_key.json build/public.json build/proof.json"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "snarkjs": "^0.7.4"
+  },
+  "devDependencies": {
+    "@types/snarkjs": "^0.7.8"
+  }
+}

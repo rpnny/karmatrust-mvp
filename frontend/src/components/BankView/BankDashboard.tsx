@@ -23,6 +23,7 @@
 
 import { motion } from 'framer-motion';
 import { CreditScoreData } from '../../hooks/useCredit';
+import ProofVerifier from '../shared/ProofVerifier';
 
 // =============================================================================
 // TYPES
@@ -166,12 +167,21 @@ export default function BankDashboard({ score, wallet }: BankDashboardProps) {
           </div>
         </motion.div>
 
+        {/* Proof Verifier */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <ProofVerifier />
+        </motion.div>
+
         {/* Hidden Factors (demonstration) */}
         <motion.div
           className="bg-surface/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-800"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
+          transition={{ delay: 0.8 }}
         >
           <h3 className="text-gray-400 text-sm font-medium tracking-wider mb-4">
             UNDERLYING FACTORS
