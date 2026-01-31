@@ -18,9 +18,19 @@ const WALLETCONNECT_PROJECT_ID = 'demo-project-id';
 export const config = createConfig({
   chains: [sepolia, mainnet],
   connectors: [
+    // MetaMask
     injected({
       target: 'metaMask',
     }),
+    // OKX Wallet
+    injected({
+      target: {
+        id: 'okxwallet',
+        name: 'OKX Wallet',
+        provider: (window as any)?.okxwallet,
+      },
+    }),
+    // WalletConnect (fallback for mobile wallets)
     walletConnect({
       projectId: WALLETCONNECT_PROJECT_ID,
       showQrModal: true,
