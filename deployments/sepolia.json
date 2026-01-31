@@ -1,0 +1,30 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployer": "0x8103ac5D4a8C01Be2181AF080794411376C7f61c",
+  "timestamp": "2026-01-31T02:51:40.368Z",
+  "contracts": {
+    "VCSMStateManager": {
+      "address": "0x2113Dd751B588D807aA37e7D714864666d35E273",
+      "explorerUrl": "https://sepolia.etherscan.io/address/0x2113Dd751B588D807aA37e7D714864666d35E273",
+      "description": "Stores cryptographic commitments of user credit states"
+    },
+    "TieredLending": {
+      "address": "0x37bA854436157064F6d502DBA620778336116725",
+      "explorerUrl": "https://sepolia.etherscan.io/address/0x37bA854436157064F6d502DBA620778336116725",
+      "description": "Credit-tier based lending with reduced collateral"
+    }
+  },
+  "tierConfigs": {
+    "1": { "name": "Bronze", "collateralRatio": "150%", "maxBorrow": "1 ETH", "interestRate": "10%" },
+    "2": { "name": "Silver", "collateralRatio": "140%", "maxBorrow": "5 ETH", "interestRate": "8%" },
+    "3": { "name": "Gold", "collateralRatio": "125%", "maxBorrow": "20 ETH", "interestRate": "6%" },
+    "4": { "name": "Platinum", "collateralRatio": "115%", "maxBorrow": "50 ETH", "interestRate": "4%" },
+    "5": { "name": "Diamond", "collateralRatio": "110%", "maxBorrow": "100 ETH", "interestRate": "2%" }
+  },
+  "notes": {
+    "savings": "Gold users save 16.7% collateral vs Bronze (150% → 125%)",
+    "diamond": "Diamond users save 26.7% collateral vs Bronze (150% → 110%)",
+    "verification": "Run `npx hardhat verify --network sepolia <address>` to verify on Etherscan"
+  }
+}

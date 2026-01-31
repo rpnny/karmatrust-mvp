@@ -17,6 +17,7 @@ import cors from 'cors';
 import creditRoutes from './routes/credit.js';
 import zkpRoutes from './routes/zkp.js';
 import vcsmRoutes from './routes/vcsm.js';
+import contractRoutes from './routes/contracts.js';
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
         credit: '/api/credit/*',
         zkp: '/api/zkp/*',
         vcsm: '/api/vcsm/*',
+        contracts: '/api/contracts/*',
       },
     },
   });
@@ -71,6 +73,9 @@ app.use('/api/zkp', zkpRoutes);
 
 // VCSM routes
 app.use('/api/vcsm', vcsmRoutes);
+
+// Contract interaction routes
+app.use('/api/contracts', contractRoutes);
 
 
 // =============================================================================
