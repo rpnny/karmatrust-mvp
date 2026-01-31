@@ -27,17 +27,24 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { CreditState } from '../types/index.js';
 import { saltToBigInt } from './vcsm/creditState.js';
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// Navigate from backend/src/services/ to project root
+const PROJECT_ROOT = path.resolve(__dirname, '../../../');
 
 // =============================================================================
 // CONFIGURATION
 // =============================================================================
 
 const CIRCUIT_PATHS = {
-  wasm: path.resolve('../circuits/build/state_transition_js/state_transition.wasm'),
-  zkey: path.resolve('../circuits/build/state_transition_final.zkey'),
-  vkey: path.resolve('../circuits/build/state_transition_vkey.json'),
+  wasm: path.join(PROJECT_ROOT, 'circuits/build/state_transition_js/state_transition.wasm'),
+  zkey: path.join(PROJECT_ROOT, 'circuits/build/state_transition_final.zkey'),
+  vkey: path.join(PROJECT_ROOT, 'circuits/build/state_transition_vkey.json'),
 };
 
 // =============================================================================

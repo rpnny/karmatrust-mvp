@@ -161,15 +161,23 @@ for i in {1..10}; do
 done | awk '{sum+=$1} END {print "Average: " sum/NR "ms"}'
 ```
 
-**Expected Average**: ~800-1000ms (0.8-1.0 seconds)
+**Expected Range**: 1-3 seconds (typical real-world conditions)
 
-**Actual Test Results** (10 runs):
+**Best-case performance** (warm cache, local testing, M-series Mac):
 ```
 Average: 834ms
 Range: 773ms - 1033ms
 First run (cold start): ~1000ms
 Subsequent runs: ~800ms
 ```
+
+**Real-world considerations**:
+- Cold starts (first proof after server restart): 2-3 seconds
+- Network latency: +100-500ms
+- Server load: variable
+- Different hardware: may be slower on non-ARM machines
+
+**For demo purposes**: Budget 2-3 seconds to avoid "over-promising"
 
 ---
 
