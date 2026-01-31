@@ -20,6 +20,7 @@ import FactorChart from '../shared/FactorChart';
 import CredentialManager from '../shared/CredentialManager';
 import ProofCard from '../shared/ProofCard';
 import StateCard from '../shared/StateCard';
+import LendingCard from '../shared/LendingCard';
 import { CreditScoreData } from '../../hooks/useCredit';
 
 // =============================================================================
@@ -132,6 +133,18 @@ export default function UserDashboard({ score, wallet }: UserDashboardProps) {
             wallet={wallet}
             currentLevel={score.level}
             currentLevelName={score.levelName}
+          />
+        </motion.div>
+
+        {/* Tiered Lending */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.9 }}
+        >
+          <LendingCard 
+            wallet={wallet}
+            creditLevel={score.level}
           />
         </motion.div>
 
