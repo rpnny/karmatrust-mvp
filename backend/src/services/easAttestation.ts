@@ -58,6 +58,7 @@ const CREDIT_SCHEMA = {
 const EAS_ABI = [
   'function attest((bytes32 schema, (address recipient, uint64 expirationTime, bool revocable, bytes32 refUID, bytes data, uint256 value) data)) external payable returns (bytes32)',
   'function getAttestation(bytes32 uid) external view returns ((bytes32 uid, bytes32 schema, uint64 time, uint64 expirationTime, uint64 revocationTime, bytes32 refUID, address recipient, address attester, bool revocable, bytes data))',
+  'event Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schemaUid)',
 ];
 
 // =============================================================================
@@ -202,8 +203,27 @@ export class EASAttestationService {
       console.log(`[EAS] Transaction confirmed in block ${receipt.blockNumber}`);
 
       // Extract attestation UID from logs
-      // The EAS contract emits an Attested event with the UID
-      const attestationId = receipt.logs[0]?.topics[1] || ethers.ZeroHash;
+      // EAS Attested event: Attested(recipient, attester, uid, schemaUid)
+      // - topics[0] = event signature
+      // - topics[1] = indexed recipient (address)
+      // - topics[2] = indexed attester (address)
+      // - topics[3] = indexed schemaUid (bytes32)
+      // - data = uid (bytes32, non-indexed)
+      let attestationId = ethers.ZeroHash;
+      
+      // Find the Attested event log
+      const attestedEventSig = ethers.id('Attested(address,address,bytes32,bytes32)');
+      const attestedLog = receipt.logs.find((log: any) => log.topics[0] === attestedEventSig);
+      
+      if (attestedLog) {
+        // The uid is in the data field (non-indexed parameter)
+        attestationId = attestedLog.data;
+        console.log(`[EAS] Attestation UID: ${attestationId}`);
+      } else {
+        // Fallback: try to get from first log's data
+        console.log('[EAS] Attested event not found, using fallback');
+        attestationId = receipt.logs[0]?.data || ethers.ZeroHash;
+      }
 
       return {
         attestationId,
