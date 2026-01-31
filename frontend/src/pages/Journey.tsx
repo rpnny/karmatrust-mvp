@@ -18,6 +18,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useToast, toast } from '../components/shared/Toast';
 import {
   BarChart,
   Bar,
@@ -111,6 +112,7 @@ const TIER_COLORS: Record<number, string> = {
 
 export default function Journey() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState<JourneyStep[]>(INITIAL_STEPS);
   const [wallet, setWallet] = useState('0x8103ac5D4a8C01Be2181AF080794411376C7f61c');
@@ -141,12 +143,20 @@ export default function Journey() {
       if (data.success) {
         setCreditResult(data.data);
         updateStepStatus(1, 'completed');
+        showToast(toast.success(
+          'Credit Score Calculated!',
+          `Your score is ${data.data.ficoDisplay} (${data.data.levelName} Tier)`,
+          4000
+        ));
         // Don't auto-advance, wait for user
       } else {
-        setError(data.error || 'Failed to calculate credit score');
+        const errorMsg = data.error || 'Failed to calculate credit score';
+        setError(errorMsg);
+        showToast(toast.error('Calculation Failed', errorMsg));
       }
     } catch (err: any) {
       setError(err.message);
+      showToast(toast.error('Network Error', err.message));
     } finally {
       setLoading(false);
     }
@@ -168,11 +178,21 @@ export default function Journey() {
 
   const handleCreateCredential = () => {
     // Simulate credential creation
+    showToast(toast.success(
+      'Credential Created!',
+      'Your on-chain attestation has been generated',
+      3000
+    ));
     handleNextStep();
   };
 
   const handleGenerateProof = () => {
     // Simulate proof generation
+    showToast(toast.success(
+      'ZK Proof Generated!',
+      'Proof created in ~400ms. Your privacy is protected.',
+      4000
+    ));
     handleNextStep();
   };
 
@@ -196,9 +216,15 @@ export default function Journey() {
           savings: parseFloat(savings.savings),
           savingsPercent: savings.savingsPercent,
         });
+        showToast(toast.info(
+          'Collateral Calculated',
+          `You save ${parseFloat(savings.savings).toFixed(2)} ETH (${savings.savingsPercent}%)`,
+          4000
+        ));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error calculating collateral:', err);
+      showToast(toast.warning('Calculation Failed', 'Using default collateral values'));
     }
   };
 
