@@ -1,11 +1,50 @@
 # 🏆 KarmaTrust
 
-> **DeFi's FICO Score + Zero-Knowledge Privacy**
+> **On-Chain Credit Scoring Infrastructure for Financial Institutions**
+>
+> *We provide credit scores. Banks/DeFi protocols make lending decisions.*
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Status](https://img.shields.io/badge/status-MVP-yellow.svg)]()
 [![Network](https://img.shields.io/badge/network-Sepolia-purple.svg)]()
 [![ETHGlobal](https://img.shields.io/badge/hackathon-ETHGlobal-brightgreen.svg)]()
+
+---
+
+## 🎯 What We Do (and Don't Do)
+
+**✅ What KarmaTrust IS:**
+- 📊 **Credit Scoring Infrastructure** - We calculate FICO-style credit scores (300-850) based on on-chain behavior
+- 🔐 **Privacy-Preserving Verification** - We generate ZK proofs for tier membership without revealing exact scores
+- ⚡ **EAS Attestation Service** - We create verifiable on-chain credentials for credit ratings
+- 🛡️ **Anti-Sybil Defense** - We mathematically prevent gaming through ZK circuit constraints
+- 🔌 **B2B API Provider** - We sell credit scoring services to banks, DeFi protocols, and financial institutions
+
+**❌ What KarmaTrust is NOT:**
+- 🚫 **NOT a Lending Platform** - We don't lend money or manage collateral
+- 🚫 **NOT a Decision Maker** - Banks/DeFi protocols decide loan terms based on our scores
+- 🚫 **NOT a Custodian** - We don't hold users' assets or manage wallets
+- 🚫 **NOT a Bank** - We're a data infrastructure provider, like FICO or Experian
+
+**Our Role in the Lending Process:**
+
+```
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   User      │──1──→│ KarmaTrust  │──2──→│  Bank/DeFi  │
+│ (Borrower)  │      │ (Scoring)   │      │  (Lender)   │
+└─────────────┘      └─────────────┘      └─────────────┘
+                            │                     │
+                            │                     │
+                     Provides Score        Makes Decision
+                     (762 - Gold)         (Approve 125%
+                                          collateral loan)
+```
+
+1. **User** requests credit analysis
+2. **KarmaTrust** calculates score + generates proof
+3. **Bank/DeFi Protocol** receives score and decides whether to approve loan
+
+**We're the FICO, not the bank.**
 
 ---
 
@@ -413,22 +452,44 @@ This is a hackathon MVP. For production:
 
 ## 💼 Business Model
 
+**Revenue Model: B2B SaaS for Financial Institutions**
+
+We are a **credit data infrastructure provider**, similar to FICO, Experian, or Chainalysis. We sell scoring services, not loans.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                          REVENUE STREAMS                                 │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
-│  1. B2B API Subscription                                                 │
-│     └── DeFi protocols pay per query (like Chainalysis)                  │
+│  1. B2B API Subscription (Primary Revenue)                               │
+│     ├── DeFi protocols pay per query                                     │
+│     ├── Banks subscribe for batch analysis                               │
+│     └── Pricing: Like Chainalysis ($0.10-$1.00 per query)                │
 │                                                                          │
-│  2. On-chain Verification Fees                                           │
-│     └── Gas fee sharing for ZK proof verification                        │
+│  2. Enterprise Licenses                                                  │
+│     ├── Unlimited queries for large institutions                         │
+│     ├── White-label solutions                                            │
+│     └── Custom scoring models                                            │
 │                                                                          │
-│  3. Premium Attestations                                                 │
-│     └── Enhanced credentials for institutions                            │
+│  3. On-chain Verification Services                                       │
+│     ├── ZK proof generation fees                                         │
+│     ├── EAS attestation creation                                         │
+│     └── Gas fee sharing                                                  │
+│                                                                          │
+│  4. Data Licensing                                                       │
+│     └── Aggregate credit trend data for research                         │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Target Customers:**
+- 🏦 Traditional Banks (e.g., JPMorgan exploring DeFi)
+- 🏦 DeFi Lending Protocols (Aave, Compound, MakerDAO)
+- 🏦 Credit Rating Agencies (S&P, Moody's)
+- 🏦 Regulatory Bodies (SEC, FINRA)
+- 🏦 Insurance Companies (for crypto coverage)
+
+**We provide the score. They provide the capital.**
 
 ---
 
