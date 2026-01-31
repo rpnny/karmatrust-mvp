@@ -27,6 +27,13 @@ import { buildPoseidon } from 'circomlibjs';
 import { ZKProof, CreditLevel } from '../types/index.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// Navigate from backend/src/services/ to project root
+const PROJECT_ROOT = path.resolve(__dirname, '../../../');
 
 // =============================================================================
 // CONFIGURATION
@@ -42,11 +49,11 @@ const TIER_BOUNDS: Record<CreditLevel, { lower: number; upper: number }> = {
   [CreditLevel.DIAMOND]: { lower: 90, upper: 100 },
 };
 
-// Circuit file paths (relative to project root)
+// Circuit file paths (absolute from project root)
 const CIRCUIT_PATHS = {
-  wasm: process.env.CIRCUIT_WASM_PATH || '../circuits/build/tier_membership_js/tier_membership.wasm',
-  zkey: process.env.CIRCUIT_ZKEY_PATH || '../circuits/build/tier_membership_final.zkey',
-  vkey: '../circuits/build/verification_key.json',
+  wasm: process.env.CIRCUIT_WASM_PATH || path.join(PROJECT_ROOT, 'circuits/build/tier_membership_js/tier_membership.wasm'),
+  zkey: process.env.CIRCUIT_ZKEY_PATH || path.join(PROJECT_ROOT, 'circuits/build/tier_membership_final.zkey'),
+  vkey: path.join(PROJECT_ROOT, 'circuits/build/verification_key.json'),
 };
 
 // =============================================================================
@@ -81,21 +88,25 @@ export class ZKProofService {
    */
   private async checkCircuitAvailability() {
     try {
-      // Check if circuit files exist
-      const wasmExists = fs.existsSync(path.resolve(CIRCUIT_PATHS.wasm));
-      const zkeyExists = fs.existsSync(path.resolve(CIRCUIT_PATHS.zkey));
+      // Check if circuit files exist (CIRCUIT_PATHS are already absolute)
+      const wasmExists = fs.existsSync(CIRCUIT_PATHS.wasm);
+      const zkeyExists = fs.existsSync(CIRCUIT_PATHS.zkey);
+
+      console.log('[ZKP] Checking circuit files:');
+      console.log(`[ZKP]   WASM: ${CIRCUIT_PATHS.wasm} → ${wasmExists ? '✅' : '❌'}`);
+      console.log(`[ZKP]   ZKEY: ${CIRCUIT_PATHS.zkey} → ${zkeyExists ? '✅' : '❌'}`);
 
       if (wasmExists && zkeyExists) {
         // Dynamically import snarkjs
         this.snarkjs = await import('snarkjs');
         this.isSimulation = false;
-        console.log('[ZKP] Real mode enabled ✅');
+        console.log('[ZKP] 🎉 Real ZK Proof mode enabled! Using actual Circom circuits.');
       } else {
-        console.log('[ZKP] Simulation mode (circuits not compiled)');
-        console.log(`[ZKP] Expected: ${CIRCUIT_PATHS.wasm}, ${CIRCUIT_PATHS.zkey}`);
+        console.log('[ZKP] ⚠️  Simulation mode (circuits not found)');
+        console.log('[ZKP] Run: cd circuits && npm run build:circuits');
       }
     } catch (error) {
-      console.log('[ZKP] Simulation mode (snarkjs not available)');
+      console.log('[ZKP] ⚠️  Simulation mode (error loading circuits):', error);
     }
   }
 
@@ -225,12 +236,14 @@ export class ZKProofService {
     };
 
     try {
-      // Generate proof
+      console.log('[ZKP] Generating REAL ZK proof using snarkjs...');
+      // Generate proof (CIRCUIT_PATHS are already absolute)
       const { proof, publicSignals } = await this.snarkjs.groth16.fullProve(
         input,
-        path.resolve(CIRCUIT_PATHS.wasm),
-        path.resolve(CIRCUIT_PATHS.zkey)
+        CIRCUIT_PATHS.wasm,
+        CIRCUIT_PATHS.zkey
       );
+      console.log('[ZKP] ✅ Real ZK proof generated successfully!');
 
       return {
         proof: {
@@ -283,9 +296,9 @@ export class ZKProofService {
     }
 
     try {
-      // Load verification key
-      const vkeyPath = path.resolve(CIRCUIT_PATHS.vkey);
-      const vkey = JSON.parse(fs.readFileSync(vkeyPath, 'utf8'));
+      console.log('[ZKP] Verifying REAL ZK proof...');
+      // Load verification key (CIRCUIT_PATHS.vkey is already absolute)
+      const vkey = JSON.parse(fs.readFileSync(CIRCUIT_PATHS.vkey, 'utf8'));
 
       // Verify using snarkjs
       const valid = await this.snarkjs.groth16.verify(
@@ -298,9 +311,10 @@ export class ZKProofService {
         }
       );
 
+      console.log(`[ZKP] ✅ Real ZK proof verification result: ${valid}`);
       return { valid, tier, bounds, isSimulated: false };
     } catch (error) {
-      console.error('[ZKP] Verification error:', error);
+      console.error('[ZKP] ❌ Verification error:', error);
       // Fallback to simulation validation
       const valid = this.validateSimulatedProof(proof, publicSignals);
       return { valid, tier, bounds, isSimulated: true };
