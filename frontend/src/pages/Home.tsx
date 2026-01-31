@@ -14,9 +14,11 @@
  * - Animated background effects
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAccount } from 'wagmi';
+import { WalletConnect } from '../components/shared/WalletConnect';
 
 // =============================================================================
 // CONSTANTS
@@ -42,6 +44,14 @@ export default function Home() {
   const [wallet, setWallet] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { address, isConnected } = useAccount();
+
+  // Auto-fill wallet input when connected
+  useEffect(() => {
+    if (isConnected && address) {
+      setWallet(address);
+    }
+  }, [isConnected, address]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +120,16 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
+          {/* Wallet Connect Section */}
+          <div className="mb-6 pb-6 border-b border-gray-800">
+            <p className="text-gray-400 text-sm mb-4 text-center">
+              Connect your wallet or enter any address
+            </p>
+            <div className="flex justify-center">
+              <WalletConnect />
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit}>
             {/* Input */}
             <div className="mb-4">

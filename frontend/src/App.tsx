@@ -13,6 +13,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Demo from './pages/Demo';
 import Journey from './pages/Journey';
+import Analytics from './pages/Analytics';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <Route path="/demo" element={<Demo />} />
       <Route path="/demo/:wallet" element={<Demo />} />
       <Route path="/journey" element={<Journey />} />
+      <Route path="/analytics/:wallet" element={<Analytics />} />
     </Routes>
   );
 }
