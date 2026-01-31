@@ -20,6 +20,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { creditScoringService } from '../services/creditScoring.js';
 import { easAttestationService } from '../services/easAttestation.js';
+import { easAttestationServiceV2, computeCommitment, generateSalt } from '../services/easAttestationV2.js';
 import { scoreToFICO } from '../types/index.js';
 
 const router = Router();
@@ -381,6 +382,172 @@ router.get('/eas/status', (_req: Request, res: Response) => {
         raw: schema.raw,
         uid: schema.uid,
       },
+    },
+    meta: { timestamp: Date.now() },
+  });
+});
+
+// =============================================================================
+// ZK-FRIENDLY COMMITMENT ATTESTATIONS (V2)
+// =============================================================================
+
+/**
+ * POST /api/credit/attest-commitment
+ * 
+ * Create a ZK-friendly attestation that stores COMMITMENT instead of plaintext score.
+ * 
+ * Flow:
+ * 1. Calculate credit score (internal)
+ * 2. Generate random salt
+ * 3. Compute commitment = Poseidon(score, salt)
+ * 4. Store commitment + minTier on-chain (via EAS)
+ * 5. Return commitment, salt to user (they need salt for ZK proofs)
+ * 
+ * Request Body:
+ * - wallet: Ethereum address (required)
+ * 
+ * Response:
+ * - score: Internal score (0-100)
+ * - commitment: Poseidon hash (for ZK proof public input)
+ * - salt: Random salt (STORE THIS! Needed for proof generation)
+ * - attestation: EAS attestation result
+ * 
+ * Privacy:
+ * - On-chain: Only commitment + minTier visible
+ * - Off-chain: User keeps score + salt private
+ * - ZK Proof: Proves score matches commitment and meets tier
+ * 
+ * Example:
+ * POST /api/credit/attest-commitment
+ * Body: { "wallet": "0x..." }
+ * 
+ * Response: {
+ *   score: 75,
+ *   commitment: "0x14620111...",
+ *   salt: "0x3d7f42a1...",
+ *   attestation: {
+ *     attestationId: "0xabc...",
+ *     explorerUrl: "https://sepolia.easscan.org/...",
+ *     commitment: "0x14620111...",
+ *     minTier: 3
+ *   }
+ * }
+ */
+router.post('/attest-commitment', async (req: Request, res: Response) => {
+  try {
+    const { wallet } = req.body;
+
+    // Validate wallet
+    if (!wallet || typeof wallet !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required field: wallet',
+        meta: { timestamp: Date.now() },
+      });
+    }
+
+    const validationResult = walletSchema.safeParse(wallet);
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        error: validationResult.error.errors[0].message,
+        meta: { timestamp: Date.now() },
+      });
+    }
+
+    console.log(`[Credit-V2] Creating commitment attestation for ${wallet.slice(0, 10)}...`);
+    const startTime = Date.now();
+
+    // 1. Calculate credit score
+    const scoreResult = await creditScoringService.calculateScore(wallet);
+    const internalScore = scoreResult.score; // 0-100
+
+    // 2. Generate random salt (user must store this!)
+    const salt = generateSalt();
+    const saltHex = '0x' + salt.toString(16).padStart(64, '0');
+
+    // 3. Compute Poseidon commitment
+    const commitment = await computeCommitment(internalScore, salt);
+    console.log(`[Credit-V2] Commitment: ${commitment.slice(0, 20)}...`);
+
+    // 4. Create EAS attestation (stores commitment, NOT score)
+    const attestation = await easAttestationServiceV2.createCommitmentAttestation({
+      wallet,
+      commitment,
+      minTier: scoreResult.level, // Public tier threshold
+      timestamp: Date.now(),
+    });
+
+    const processingTime = Date.now() - startTime;
+    console.log(`[Credit-V2] Commitment attestation created in ${processingTime}ms`);
+
+    return res.json({
+      success: true,
+      data: {
+        // Score data (user needs to keep private!)
+        score: {
+          internal: internalScore,
+          fico: scoreToFICO(internalScore),
+          level: scoreResult.level,
+          levelName: scoreResult.levelName,
+          risk: scoreResult.risk,
+        },
+        
+        // Cryptographic data
+        commitment,
+        salt: saltHex, // ⚠️ USER MUST STORE THIS!
+        
+        // On-chain attestation
+        attestation,
+        
+        // Warning
+        warning: 'IMPORTANT: Store the salt value! You need it to generate ZK proofs.',
+      },
+      meta: {
+        timestamp: Date.now(),
+        version: '0.1.0-mvp',
+        processingTimeMs: processingTime,
+        mode: 'commitment-based',
+      },
+    });
+
+  } catch (error) {
+    console.error('[Credit-V2] Error creating commitment attestation:', error);
+    return res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create commitment attestation',
+      meta: { timestamp: Date.now() },
+    });
+  }
+});
+
+/**
+ * GET /api/credit/eas/status/v2
+ * 
+ * Get ZK-friendly EAS service status and schema information.
+ */
+router.get('/eas/status/v2', (_req: Request, res: Response) => {
+  const schema = easAttestationServiceV2.getSchema();
+
+  return res.json({
+    success: true,
+    data: {
+      mode: 'commitment-based',
+      description: 'Stores Poseidon commitment instead of plaintext score',
+      schema: {
+        raw: schema.raw,
+        uid: schema.uid,
+        fields: {
+          commitment: 'bytes32 - Poseidon(score, salt)',
+          minTier: 'uint8 - Minimum tier achieved (1-5)',
+          timestamp: 'uint64 - Attestation timestamp',
+        },
+      },
+      privacy: {
+        public: ['commitment', 'minTier', 'timestamp'],
+        private: ['score', 'salt'],
+      },
+      zkCompatible: true,
     },
     meta: { timestamp: Date.now() },
   });
