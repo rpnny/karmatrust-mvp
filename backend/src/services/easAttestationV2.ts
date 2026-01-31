@@ -63,9 +63,9 @@ const EAS_CONFIG = {
 const COMMITMENT_SCHEMA = {
   raw: 'bytes32 commitment,uint8 minTier,uint64 timestamp',
   types: ['bytes32', 'uint8', 'uint64'],
-  // This schema would need to be registered on EAS
-  // For demo, we compute deterministic UID
-  uid: null as string | null,
+  // REAL REGISTERED SCHEMA UID ON SEPOLIA!
+  // Registered in tx: 0x5b2edc70f9e9e2c6fa792506d6df8791296e40731be476c161a777780981d4f5
+  uid: '0xef0ccdc547432a192cb07a23a2c3fc1d3da013fa20980f7db8c2bbfb924ebb11',
 };
 
 const EAS_ABI = [
@@ -120,9 +120,8 @@ export class EASAttestationServiceV2 {
     const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
-    // Compute schema ID
-    this.schemaId = ethers.keccak256(ethers.toUtf8Bytes(COMMITMENT_SCHEMA.raw));
-    COMMITMENT_SCHEMA.uid = this.schemaId;
+    // Use registered schema ID
+    this.schemaId = COMMITMENT_SCHEMA.uid!;
 
     // Check for private key (enables real mode)
     const privateKey = process.env.PRIVATE_KEY;
