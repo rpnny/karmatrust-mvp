@@ -12,6 +12,7 @@
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Demo from './pages/Demo';
+import Journey from './pages/Journey';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/demo" element={<Demo />} />
       <Route path="/demo/:wallet" element={<Demo />} />
+      <Route path="/journey" element={<Journey />} />
     </Routes>
   );
 }

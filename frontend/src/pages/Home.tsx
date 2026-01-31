@@ -140,6 +140,16 @@ export default function Home() {
             </button>
           </form>
 
+          {/* Journey Button */}
+          <div className="mt-4">
+            <button
+              onClick={() => navigate('/journey')}
+              className="w-full bg-surface border border-primary text-primary py-3 rounded-xl font-semibold hover:bg-primary hover:text-black transition transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              🎬 Watch Alice's Journey
+            </button>
+          </div>
+
           {/* Example Wallets */}
           <div className="mt-6 pt-6 border-t border-gray-800">
             <p className="text-gray-500 text-sm mb-3 text-center">Quick Access</p>
