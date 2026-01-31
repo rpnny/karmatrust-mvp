@@ -42,11 +42,11 @@ const TIER_BOUNDS: Record<CreditLevel, { lower: number; upper: number }> = {
   [CreditLevel.DIAMOND]: { lower: 90, upper: 100 },
 };
 
-// Circuit file paths
+// Circuit file paths (relative to project root)
 const CIRCUIT_PATHS = {
-  wasm: process.env.CIRCUIT_WASM_PATH || 'circuits/build/tier_membership_js/tier_membership.wasm',
-  zkey: process.env.CIRCUIT_ZKEY_PATH || 'circuits/build/tier_membership_final.zkey',
-  vkey: 'circuits/build/verification_key.json',
+  wasm: process.env.CIRCUIT_WASM_PATH || '../circuits/build/tier_membership_js/tier_membership.wasm',
+  zkey: process.env.CIRCUIT_ZKEY_PATH || '../circuits/build/tier_membership_final.zkey',
+  vkey: '../circuits/build/verification_key.json',
 };
 
 // =============================================================================

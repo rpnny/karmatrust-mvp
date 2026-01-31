@@ -5,7 +5,11 @@ node_modules/
 
 # Build outputs
 dist/
-build/
+/build/
+frontend/build/
+backend/build/
+contracts/build/
+# KEEP circuits/build/ for hackathon demo (required for ZK proof generation)
 .next/
 out/
 
@@ -38,12 +42,12 @@ cache/
 artifacts/
 typechain-types/
 
-# ZK Circuits (keep source, ignore build artifacts)
-circuits/build/*.wasm
-circuits/build/*.r1cs
-circuits/build/*.sym
-circuits/build/*.zkey
+# ZK Circuits - KEEP build artifacts for hackathon demo
+# These are compiled from tier_membership.circom
+# Uncomment to ignore: circuits/build/
 circuits/ptau/*.ptau
+# Keep intermediate zkey, only final is needed
+circuits/build/*_0000.zkey
 
 # Misc
 *.tsbuildinfo
