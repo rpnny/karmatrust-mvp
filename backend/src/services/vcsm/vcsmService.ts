@@ -42,6 +42,7 @@ import {
   TransitionRule,
 } from './transitionRules.js';
 import { zkProofService } from '../zkProof.js';
+import { zkStateTransitionService } from '../zkStateTransition.js';
 
 // =============================================================================
 // SERVICE CLASS
@@ -180,17 +181,34 @@ export class VCSMService {
       };
     }
 
-    // Generate ZK proof for the transition
+    // Create new state first (needed for proof generation)
+    const newState = await createTransitionState(currentState, newScore, evidence?.eventData as any);
+
+    // Generate ZK proof for the state transition
     let proof: ZKProof | undefined;
     try {
-      const proofResult = await zkProofService.generateProof(newScore, rule.toLevel);
-      proof = proofResult.proof;
+      const transitionProof = await zkStateTransitionService.generateTransitionProof(
+        currentState,
+        newState,
+        rule.circuitParams,
+        sybilScore
+      );
+      
+      // Convert to standard ZKProof format
+      proof = {
+        pi_a: transitionProof.proof.pi_a,
+        pi_b: transitionProof.proof.pi_b,
+        pi_c: transitionProof.proof.pi_c,
+        protocol: transitionProof.proof.protocol,
+        curve: transitionProof.proof.curve,
+      } as ZKProof;
+      
+      console.log(`[VCSM] State transition proof generated: ${transitionProof.isSimulated ? 'SIMULATED' : 'REAL'}`);
+      console.log(`[VCSM] Proof generation time: ${transitionProof.generationTime}ms`);
+      console.log(`[VCSM] Circuit constraints: ${transitionProof.constraints}`);
     } catch (error) {
-      console.warn('[VCSM] ZK proof generation failed, continuing without proof:', error);
+      console.warn('[VCSM] State transition proof generation failed, continuing without proof:', error);
     }
-
-    // Create new state
-    const newState = await createTransitionState(currentState, newScore, evidence?.eventData as any);
 
     // Update storage
     this.states.set(userId, newState);
