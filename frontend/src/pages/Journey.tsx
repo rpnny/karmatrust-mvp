@@ -141,8 +141,12 @@ export default function Journey() {
       if (data.success) {
         setCreditResult(data.data);
         updateStepStatus(1, 'completed');
-        setCurrentStep(2);
-        updateStepStatus(2, 'active');
+        
+        // Wait 3 seconds before moving to next step
+        setTimeout(() => {
+          setCurrentStep(2);
+          updateStepStatus(2, 'active');
+        }, 3000);
       } else {
         setError(data.error || 'Failed to calculate credit score');
       }
@@ -156,16 +160,24 @@ export default function Journey() {
   const handleCreateCredential = () => {
     // Simulate credential creation
     updateStepStatus(2, 'completed');
-    setCurrentStep(3);
-    updateStepStatus(3, 'active');
+    
+    // Wait 2 seconds before moving to next step
+    setTimeout(() => {
+      setCurrentStep(3);
+      updateStepStatus(3, 'active');
+    }, 2000);
   };
 
   const handleGenerateProof = () => {
     // Simulate proof generation
     updateStepStatus(3, 'completed');
-    setCurrentStep(4);
-    updateStepStatus(4, 'active');
-    calculateCollateral();
+    
+    // Wait 2 seconds before moving to next step
+    setTimeout(() => {
+      setCurrentStep(4);
+      updateStepStatus(4, 'active');
+      calculateCollateral();
+    }, 2000);
   };
 
   const calculateCollateral = async () => {
@@ -195,8 +207,12 @@ export default function Journey() {
     }
 
     updateStepStatus(4, 'completed');
-    setCurrentStep(5);
-    updateStepStatus(5, 'active');
+    
+    // Wait 3 seconds before showing final comparison
+    setTimeout(() => {
+      setCurrentStep(5);
+      updateStepStatus(5, 'active');
+    }, 3000);
   };
 
   const updateStepStatus = (stepId: number, status: 'pending' | 'active' | 'completed') => {
