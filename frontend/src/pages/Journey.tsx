@@ -272,8 +272,8 @@ export default function Journey() {
       </motion.div>
 
       {/* Progress Bar */}
-      <div className="max-w-6xl mx-auto mb-12">
-        <div className="flex items-center justify-between">
+      <div className="max-w-6xl mx-auto mb-12 px-4">
+        <div className="hidden md:flex items-center justify-between">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center flex-1">
               {/* Step Circle */}
@@ -323,6 +323,22 @@ export default function Journey() {
                 </div>
               )}
             </div>
+          ))}
+        </div>
+
+        {/* Mobile Progress Indicator */}
+        <div className="md:hidden flex items-center justify-center gap-2 mt-6">
+          {steps.map((step) => (
+            <div
+              key={step.id}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                step.status === 'completed'
+                  ? 'bg-primary w-8'
+                  : step.status === 'active'
+                  ? 'bg-primary/50 w-12 animate-pulse'
+                  : 'bg-gray-700 w-6'
+              }`}
+            />
           ))}
         </div>
       </div>
@@ -394,7 +410,7 @@ export default function Journey() {
                   </div>
 
                   {/* Detailed Factors */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.entries(creditResult.factors).map(([key, value], i) => (
                       <motion.div
                         key={key}
@@ -462,7 +478,7 @@ export default function Journey() {
                 </div>
 
                 {/* Options Grid */}
-                <div className="grid grid-cols-2 gap-6">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   {/* Public Mode */}
                   <button
                     onClick={handleCreateCredential}
@@ -594,8 +610,8 @@ export default function Journey() {
                   </p>
                 </div>
 
-                {/* What Gets Revealed */}
-                <div className="grid grid-cols-2 gap-6">
+                  {/* What Gets Revealed */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                   <div className="bg-red-900/10 border border-red-800/30 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -703,7 +719,7 @@ export default function Journey() {
             <StepContainer key="step4" title="Step 4: Your Borrowing Capacity">
               <div className="space-y-8">
                 {/* Hero Stats */}
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                   <motion.div
                     className="bg-background rounded-xl p-6 border-2 border-primary text-center"
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -794,7 +810,7 @@ export default function Journey() {
                 </div>
 
                 {/* Benefits */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-green-900/20 border border-green-700 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -941,7 +957,7 @@ function SavingsComparison({
   return (
     <div className="space-y-8">
       {/* Hero Stats */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         <div className="bg-background rounded-xl p-6 border border-gray-800 text-center">
           <div className="text-gray-400 text-sm mb-2">Borrow Amount</div>
           <div className="text-3xl font-bold text-white">{collateralData.borrowAmount} ETH</div>
@@ -957,7 +973,7 @@ function SavingsComparison({
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         {/* Bar Chart */}
         <div className="bg-background rounded-xl p-6 border border-gray-800">
           <h3 className="text-lg font-semibold mb-4">Collateral Comparison</h3>
@@ -1021,7 +1037,7 @@ function SavingsComparison({
       {/* Real-World Impact */}
       <div className="bg-background rounded-xl p-6 border border-gray-800">
         <h4 className="text-lg font-semibold text-white mb-4">💰 Real-World Impact</h4>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
           <div>
             <h5 className="text-sm font-semibold text-gray-400 mb-3">Traditional DeFi</h5>
             <div className="space-y-2 text-sm text-gray-500">
@@ -1069,7 +1085,7 @@ function SavingsComparison({
       </div>
 
       {/* Use Cases */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-background rounded-xl p-4 border border-gray-800">
           <div className="text-2xl mb-2">🌾</div>
           <h5 className="text-sm font-semibold text-white mb-1">Yield Farming</h5>

@@ -98,7 +98,7 @@ interface ToastContainerProps {
 
 function ToastContainer({ toasts, onClose }: ToastContainerProps) {
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+    <div className="fixed top-4 right-4 left-4 md:left-auto z-50 flex flex-col gap-2 pointer-events-none max-w-full md:max-w-none">
       <AnimatePresence>
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onClose={onClose} />
@@ -143,7 +143,7 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
       className="pointer-events-auto"
     >
       <div
-        className={`relative w-80 rounded-xl border-2 overflow-hidden backdrop-blur-sm shadow-xl ${config.containerClass}`}
+        className={`relative w-full md:w-80 rounded-xl border-2 overflow-hidden backdrop-blur-sm shadow-xl ${config.containerClass}`}
       >
         {/* Progress Bar */}
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800">
