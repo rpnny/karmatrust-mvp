@@ -43,6 +43,15 @@ interface ProofData {
   isSimulated: boolean;
 }
 
+interface ProofResponse {
+  success: boolean;
+  data: ProofData;
+  meta?: {
+    timestamp: number;
+    processingTimeMs: number;
+  };
+}
+
 interface ProofCardProps {
   wallet: string;
   currentTier: number;
@@ -64,6 +73,7 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [processingTime, setProcessingTime] = useState<number | null>(null);
 
   /**
    * Generate a new ZK proof
@@ -71,6 +81,7 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
   const generateProof = async () => {
     setLoading(true);
     setError(null);
+    setProcessingTime(null);
 
     try {
       const response = await fetch(`${API_BASE}/zkp/generate`, {
@@ -79,10 +90,11 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
         body: JSON.stringify({ wallet }),
       });
 
-      const data = await response.json();
+      const data: ProofResponse = await response.json();
 
       if (data.success) {
         setProof(data.data);
+        setProcessingTime(data.meta?.processingTimeMs || null);
       } else {
         setError(data.error || 'Failed to generate proof');
       }
@@ -120,9 +132,13 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
         <h2 className="text-gray-400 text-sm font-medium tracking-wider">
           ZK PROOF
         </h2>
-        {proof?.isSimulated && (
-          <span className="text-xs bg-purple-900/30 text-purple-400 px-2 py-0.5 rounded-full border border-purple-800/50">
-            Simulated
+        {proof && (
+          <span className={`text-xs px-2 py-0.5 rounded-full border ${
+            proof.isSimulated
+              ? 'bg-purple-900/30 text-purple-400 border-purple-800/50'
+              : 'bg-green-900/30 text-green-400 border-green-800/50 animate-pulse'
+          }`}>
+            {proof.isSimulated ? 'Simulated' : '✅ Real Proof'}
           </span>
         )}
       </div>
@@ -202,28 +218,57 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
             className="space-y-4"
           >
             {/* Success Badge */}
-            <div className="flex items-center justify-center gap-2 py-2">
-              <div className="w-8 h-8 rounded-full bg-purple-900/30 flex items-center justify-center">
-                <span className="text-purple-400">✓</span>
+            <div className="flex flex-col items-center justify-center gap-2 py-2">
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  proof.isSimulated ? 'bg-purple-900/30' : 'bg-green-900/30'
+                }`}>
+                  <span className={proof.isSimulated ? 'text-purple-400' : 'text-green-400'}>✓</span>
+                </div>
+                <span className={`font-medium ${
+                  proof.isSimulated ? 'text-purple-400' : 'text-green-400'
+                }`}>
+                  {proof.isSimulated ? 'Simulated Proof Generated' : '🎉 Real ZK Proof Generated!'}
+                </span>
               </div>
-              <span className="text-purple-400 font-medium">
-                Proof Generated
-              </span>
+              {processingTime && !proof.isSimulated && (
+                <p className="text-xs text-green-500">
+                  ⚡ Generated in {(processingTime / 1000).toFixed(2)}s using Circom + Groth16
+                </p>
+              )}
             </div>
 
             {/* What this proves */}
-            <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-800/30">
-              <p className="text-purple-300 text-sm font-medium mb-2">
-                This proof verifies:
-              </p>
+            <div className={`rounded-lg p-4 border ${
+              proof.isSimulated 
+                ? 'bg-purple-900/20 border-purple-800/30' 
+                : 'bg-green-900/20 border-green-800/30'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <p className={`text-sm font-medium ${
+                  proof.isSimulated ? 'text-purple-300' : 'text-green-300'
+                }`}>
+                  This proof verifies:
+                </p>
+                {!proof.isSimulated && (
+                  <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+                    Cryptographically Secure
+                  </span>
+                )}
+              </div>
               <p className="text-white text-lg">
                 "My score is between{' '}
-                <span className="text-purple-400 font-mono">{proof.bounds.lower}</span>
+                <span className={`font-mono ${proof.isSimulated ? 'text-purple-400' : 'text-green-400'}`}>
+                  {proof.bounds.lower}
+                </span>
                 {' '}and{' '}
-                <span className="text-purple-400 font-mono">{proof.bounds.upper}</span>"
+                <span className={`font-mono ${proof.isSimulated ? 'text-purple-400' : 'text-green-400'}`}>
+                  {proof.bounds.upper}
+                </span>"
               </p>
               <p className="text-gray-500 text-xs mt-2">
                 Without revealing the exact score
+                {!proof.isSimulated && ' • Verified using Groth16 protocol'}
               </p>
             </div>
 
