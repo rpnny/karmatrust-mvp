@@ -45,14 +45,13 @@ const EAS_CONFIG = {
   },
 };
 
-// Our Credit Score Schema
-// Registered on Sepolia: address wallet, uint16 score, string risk, uint64 timestamp, uint16 volatility, uint16 stability, uint8 level
+// Our Credit Score Schema - REGISTERED ON SEPOLIA!
+// Schema UID: 0x80ede33b42c6a99e8a4aa30fbae0e0931b1da0f4bd69a616a088bda53d3f8aad
 const CREDIT_SCHEMA = {
-  raw: 'address wallet,uint16 score,string risk,uint64 timestamp,uint16 volatility,uint16 stability,uint8 level',
-  types: ['address', 'uint16', 'string', 'uint64', 'uint16', 'uint16', 'uint8'],
-  // This would be the actual schema UID after registration
-  // For MVP, we compute it dynamically
-  uid: null as string | null,
+  raw: 'uint16 score,string level',
+  types: ['uint16', 'string'],
+  // REAL REGISTERED SCHEMA UID ON SEPOLIA!
+  uid: '0x80ede33b42c6a99e8a4aa30fbae0e0931b1da0f4bd69a616a088bda53d3f8aad',
 };
 
 // EAS Contract ABI (minimal, just what we need)
@@ -77,8 +76,8 @@ export class EASAttestationService {
     const rpcUrl = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia.gateway.tatum.io';
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
-    // Compute schema ID
-    this.schemaId = this.computeSchemaId(CREDIT_SCHEMA.raw);
+    // Use registered schema ID
+    this.schemaId = CREDIT_SCHEMA.uid!;
 
     // Check for private key (enables real mode)
     const privateKey = process.env.PRIVATE_KEY;
@@ -168,18 +167,13 @@ export class EASAttestationService {
       throw new Error('Signer not initialized');
     }
 
-    // Encode attestation data
+    // Encode attestation data using our registered schema
     const abiCoder = new ethers.AbiCoder();
     const encodedData = abiCoder.encode(
       CREDIT_SCHEMA.types,
       [
-        creditScore.wallet,                                    // address wallet
-        Math.round(creditScore.score),                         // uint16 score (FICO)
-        creditScore.risk,                                      // string risk
-        BigInt(Math.floor(creditScore.timestamp / 1000)),      // uint64 timestamp
-        Math.round(creditScore.factors.volatility * 1000),     // uint16 volatility (scaled)
-        Math.round(creditScore.factors.stability * 1000),      // uint16 stability (scaled)
-        creditScore.level,                                     // uint8 level
+        creditScore.ficoDisplay || Math.round(creditScore.score),  // uint16 score (FICO)
+        creditScore.levelName || 'Unknown',                        // string level
       ]
     );
 
