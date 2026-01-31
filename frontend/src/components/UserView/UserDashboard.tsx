@@ -17,7 +17,7 @@
 import { motion } from 'framer-motion';
 import ScoreCard from '../shared/ScoreCard';
 import FactorChart from '../shared/FactorChart';
-import AttestationCard from '../shared/AttestationCard';
+import CredentialManager from '../shared/CredentialManager';
 import ProofCard from '../shared/ProofCard';
 import StateCard from '../shared/StateCard';
 import { CreditScoreData } from '../../hooks/useCredit';
@@ -94,13 +94,19 @@ export default function UserDashboard({ score, wallet }: UserDashboardProps) {
           <FactorChart factors={score.factors} />
         </motion.div>
 
-        {/* EAS Attestation */}
+        {/* Credential Manager - Choose Public or Privacy Mode */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <AttestationCard wallet={wallet} />
+          <CredentialManager 
+            wallet={wallet}
+            score={score.score}
+            ficoDisplay={score.ficoDisplay}
+            level={score.level}
+            levelName={score.levelName}
+          />
         </motion.div>
 
         {/* ZK Proof Generator */}
