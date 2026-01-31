@@ -33,7 +33,52 @@
 | **Sybil Attacks** | Backend anti-gaming → Easily bypassed | System gaming |
 | **No Standard** | No FICO for DeFi → Banks don't trust | Adoption barrier |
 
-## 💡 Our Solution
+## 💡 Our Solution: Dual-Mode Credentials
+
+KarmaTrust provides **two ways** to prove creditworthiness. Users choose based on their priorities:
+
+### 🌐 Mode 1: Public Attestation (Transparency)
+
+**Use Case**: High-score users want best rates
+
+```
+User → EAS On-Chain Attestation → Publicly Verifiable Score
+
+✓ Score visible on EASScan
+✓ Maximum trust from banks
+✓ Best interest rates
+✗ No privacy protection
+```
+
+### 🔒 Mode 2: ZK Proof (Privacy)
+
+**Use Case**: Privacy-conscious users
+
+```
+User → Generate ZK Proof → Only Proves Tier Membership
+
+✓ Exact score remains hidden
+✓ Cryptographically verifiable
+✓ Anti-sybil in circuit
+! Bank only learns tier (e.g., "Gold+")
+```
+
+### 💭 Design Philosophy
+
+**Why two modes?**
+
+This is not a bug—it's intentional design. Different users have different needs:
+
+- **Public mode** is for users who WANT to show off their score (think: LinkedIn)
+- **Privacy mode** is for users who want minimum viable disclosure (think: VPN)
+
+**The Privacy Paradox**: If EAS attestations contain scores, why use ZK?
+
+- EAS = User's **choice** to go public (opt-in transparency)
+- ZK = User's **choice** to stay private (selective disclosure)
+- Banks/DeFi protocols can accept **either** credential type
+
+**Example Flow**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -42,7 +87,7 @@
 │                                                                          │
 │   KarmaTrust: Analyzes 8 on-chain factors → Score: 762 (Gold Tier)       │
 │                                                                          │
-│   User: "But I don't want to reveal my exact score or wallet history"    │
+│   User: "I DON'T want to reveal my exact score"                          │
 │                                                                          │
 │   KarmaTrust: Generates ZK proof → "User is ≥Gold tier"                  │
 │               (Bank knows tier, NOT exact score!)                        │
