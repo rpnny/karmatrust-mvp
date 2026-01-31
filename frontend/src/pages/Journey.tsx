@@ -427,8 +427,11 @@ export default function Journey() {
               <div className="space-y-6">
                 {/* Explanation */}
                 <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800">
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-400 text-sm mb-2">
                     KarmaTrust offers two credential modes. Choose based on your privacy preference:
+                  </p>
+                  <p className="text-primary text-xs">
+                    👆 Click any mode to continue
                   </p>
                 </div>
 
