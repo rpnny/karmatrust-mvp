@@ -161,7 +161,15 @@ for i in {1..10}; do
 done | awk '{sum+=$1} END {print "Average: " sum/NR "ms"}'
 ```
 
-**Expected Average**: ~1800-2000ms
+**Expected Average**: ~800-1000ms (0.8-1.0 seconds)
+
+**Actual Test Results** (10 runs):
+```
+Average: 834ms
+Range: 773ms - 1033ms
+First run (cold start): ~1000ms
+Subsequent runs: ~800ms
+```
 
 ---
 

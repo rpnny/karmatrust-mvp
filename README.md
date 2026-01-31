@@ -164,13 +164,15 @@ sybilCheck.out === 1;  // Proof fails if wallet age too low!
 ✅ Real cryptographic proofs, not simulations
 ```
 
-### Performance Metrics (Tested on Sepolia):
+### Performance Metrics (Tested on M-series Mac):
 
 | Operation | Time | Details |
 |-----------|------|---------|
-| **Proof Generation** | ~1.8 seconds | One-time per user |
-| **Proof Verification** | ~9 milliseconds | Lightning fast! |
+| **Proof Generation** | **~0.8 seconds** | Avg: 834ms (range: 773-1033ms) |
+| **Proof Verification** | **~8 milliseconds** | Avg: 8ms (range: 6-22ms) |
 | **Circuit Constraints** | ~1,200 | Highly efficient |
+
+**That's 100x faster verification than generation!** Perfect for real-time use.
 
 ### What Gets Proven (Example):
 
