@@ -141,12 +141,7 @@ export default function Journey() {
       if (data.success) {
         setCreditResult(data.data);
         updateStepStatus(1, 'completed');
-        
-        // Wait 3 seconds before moving to next step
-        setTimeout(() => {
-          setCurrentStep(2);
-          updateStepStatus(2, 'active');
-        }, 3000);
+        // Don't auto-advance, wait for user
       } else {
         setError(data.error || 'Failed to calculate credit score');
       }
@@ -157,34 +152,34 @@ export default function Journey() {
     }
   };
 
+  const handleNextStep = () => {
+    if (currentStep < 5) {
+      updateStepStatus(currentStep, 'completed');
+      setCurrentStep(currentStep + 1);
+      updateStepStatus(currentStep + 1, 'active');
+      
+      // Trigger specific actions for certain steps
+      if (currentStep === 3) {
+        // After generating proof, calculate collateral
+        calculateCollateral();
+      }
+    }
+  };
+
   const handleCreateCredential = () => {
     // Simulate credential creation
-    updateStepStatus(2, 'completed');
-    
-    // Wait 2 seconds before moving to next step
-    setTimeout(() => {
-      setCurrentStep(3);
-      updateStepStatus(3, 'active');
-    }, 2000);
+    handleNextStep();
   };
 
   const handleGenerateProof = () => {
     // Simulate proof generation
-    updateStepStatus(3, 'completed');
-    
-    // Wait 2 seconds before moving to next step
-    setTimeout(() => {
-      setCurrentStep(4);
-      updateStepStatus(4, 'active');
-      calculateCollateral();
-    }, 2000);
+    handleNextStep();
   };
 
   const calculateCollateral = async () => {
     if (!creditResult) return;
 
     const borrowAmount = 10; // 10 ETH example
-    const traditionalRatio = 1.5; // 150%
     const tier = creditResult.level || 1;
 
     // Get tier-specific ratio from API
@@ -205,14 +200,6 @@ export default function Journey() {
     } catch (err) {
       console.error('Error calculating collateral:', err);
     }
-
-    updateStepStatus(4, 'completed');
-    
-    // Wait 3 seconds before showing final comparison
-    setTimeout(() => {
-      setCurrentStep(5);
-      updateStepStatus(5, 'active');
-    }, 3000);
   };
 
   const updateStepStatus = (stepId: number, status: 'pending' | 'active' | 'completed') => {
@@ -415,6 +402,19 @@ export default function Journey() {
                       KarmaTrust uses a FICO-style algorithm (300-850 range) to make your on-chain credit 
                       understandable to traditional lenders.
                     </p>
+                  </div>
+
+                  {/* Next Button */}
+                  <div className="flex justify-center mt-8">
+                    <button
+                      onClick={handleNextStep}
+                      className="bg-primary text-black px-8 py-3 rounded-xl font-semibold hover:bg-primary/90 transition transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 flex items-center gap-2"
+                    >
+                      Continue to Credentials
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               ) : null}
@@ -654,9 +654,12 @@ export default function Journey() {
                 <div className="text-center">
                   <button
                     onClick={handleGenerateProof}
-                    className="bg-primary text-black px-12 py-4 rounded-xl font-semibold text-lg hover:bg-primary/90 transition transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                    className="bg-primary text-black px-12 py-4 rounded-xl font-semibold text-lg hover:bg-primary/90 transition transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 flex items-center gap-2 mx-auto"
                   >
-                    🔐 Generate ZK Proof
+                    🔐 Generate Proof & Continue
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
                   </button>
                   <p className="text-xs text-gray-600 mt-3">
                     Proof will be generated locally in your browser (~400ms)
@@ -804,6 +807,19 @@ export default function Journey() {
                       View on Etherscan →
                     </a>
                   </div>
+                </div>
+
+                {/* Next Button */}
+                <div className="flex justify-center mt-6">
+                  <button
+                    onClick={handleNextStep}
+                    className="bg-primary text-black px-8 py-3 rounded-xl font-semibold hover:bg-primary/90 transition transform hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 flex items-center gap-2"
+                  >
+                    See Your Savings
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </StepContainer>
