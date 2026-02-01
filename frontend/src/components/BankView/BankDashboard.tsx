@@ -140,6 +140,7 @@ export default function BankDashboard({ score, wallet, zkProofVerified = false }
                   </div>
                 </>
               )}
+            </div>
           </div>
         </motion.div>
 
