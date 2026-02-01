@@ -314,6 +314,47 @@ export default function DualDemo({}: DualDemoProps) {
 
             {/* User View Content */}
             <div className="space-y-6">
+              {/* Initial State - Show placeholder */}
+              {currentStep < 2 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="bg-surface rounded-lg p-8 flex flex-col items-center justify-center min-h-[400px]"
+                >
+                  <div className="text-center space-y-6">
+                    <div className="w-20 h-20 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
+                      <svg className="w-10 h-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">Alice</p>
+                      <p className="text-gray-400 text-sm mt-2">Wallet: 0x742d...0bEb</p>
+                      <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-lg">
+                        <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-primary text-sm font-semibold">Full Access</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-gray-300 font-medium">Alice can see:</p>
+                      <div className="text-sm text-gray-400 space-y-1">
+                        <p>✓ Exact credit score</p>
+                        <p>✓ All score factors</p>
+                        <p>✓ Complete transaction history</p>
+                        <p>✓ Wallet balance</p>
+                      </div>
+                    </div>
+                    {currentStep === 0 && (
+                      <p className="text-primary text-sm font-semibold animate-pulse">
+                        👆 Click "Start Demo" above to begin
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
               {/* Credit Score Section */}
               {currentStep >= 2 && (
                 <motion.div
@@ -505,7 +546,7 @@ export default function DualDemo({}: DualDemoProps) {
                   animate={{ opacity: 1 }}
                   className="bg-surface rounded-lg p-8 flex flex-col items-center justify-center min-h-[400px]"
                 >
-                  <div className="text-center space-y-4">
+                  <div className="text-center space-y-6">
                     {currentStep < 6 ? (
                       <>
                         <div className="w-20 h-20 mx-auto bg-gray-800 rounded-full flex items-center justify-center">
@@ -513,10 +554,34 @@ export default function DualDemo({}: DualDemoProps) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                           </svg>
                         </div>
-                        <p className="text-gray-500 text-lg">⏳ Awaiting Proof</p>
-                        <p className="text-gray-600 text-sm max-w-xs">
-                          Bank sees NOTHING until user submits ZK proof
-                        </p>
+                        <div>
+                          <p className="text-2xl font-bold text-gray-500">Bank / Lender</p>
+                          <p className="text-gray-600 text-sm mt-2">DeFi Protocol</p>
+                          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg">
+                            <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-gray-600 text-sm font-semibold">Privacy Protected</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-gray-500 font-medium">
+                            {currentStep === 0 
+                              ? "Bank currently sees:"
+                              : "⏳ Awaiting Proof"}
+                          </p>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p>❌ No credit score</p>
+                            <p>❌ No wallet data</p>
+                            <p>❌ No transaction history</p>
+                            <p>❌ No personal information</p>
+                          </div>
+                        </div>
+                        {currentStep === 0 && (
+                          <p className="text-gray-600 text-sm">
+                            Complete privacy until ZK proof is submitted
+                          </p>
+                        )}
                       </>
                     ) : (
                       <>
