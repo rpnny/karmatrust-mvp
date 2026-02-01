@@ -140,13 +140,22 @@ export default function Home() {
             </button>
           </form>
 
-          {/* Journey Button */}
-          <div className="mt-4">
+          {/* Demo Buttons */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button
+              onClick={() => navigate('/dual-demo')}
+              className="w-full bg-gradient-to-r from-primary to-accent text-black py-3 rounded-xl font-semibold hover:opacity-90 transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+              </svg>
+              One-Click Auto Demo
+            </button>
             <button
               onClick={() => navigate('/journey')}
               className="w-full bg-surface border border-primary text-primary py-3 rounded-xl font-semibold hover:bg-primary hover:text-black transition transform hover:scale-[1.02] active:scale-[0.98]"
             >
-              🎬 Watch Alice's Journey
+              🎬 Alice's Journey
             </button>
           </div>
 
