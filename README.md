@@ -119,6 +119,8 @@ User → Generate ZK Proof → Only Proves Tier Membership
 ! Bank only learns tier (e.g., "Gold+")
 ```
 
+**📖 [Complete Privacy Mode Guide](./docs/PRIVACY_MODE_GUIDE.md)** - Learn how to use salt-based commitment proofs
+
 ### 💭 Design Philosophy
 
 **Why two modes?**
@@ -694,6 +696,23 @@ We believe in transparent AI usage and have:
 4. ✅ Provided comprehensive test suites to validate human-designed logic
 
 **The human brain designed the system. AI was the efficient hands that typed it out.**
+
+---
+
+## 📚 Documentation
+
+Comprehensive guides and technical deep dives:
+
+| Document | Description |
+|----------|-------------|
+| [VCSM Innovation](./docs/VCSM_INNOVATION.md) | Deep dive into Verifiable Credit State Machine |
+| [Privacy Mode Guide](./docs/PRIVACY_MODE_GUIDE.md) | Complete guide to using Privacy Mode with salt-based commitments |
+| [ZK + EAS Hybrid](./docs/ZK_EAS_HYBRID.md) | Architecture design for privacy-preserving attestations |
+| [Circuit Performance](./docs/CIRCUIT_PERFORMANCE.md) | ZK proof benchmarks and optimization |
+| [API Documentation](./docs/API.md) | Complete REST API reference |
+| [Architecture](./docs/ARCHITECTURE.md) | System architecture and design decisions |
+| [Deployment Guide](./docs/DEPLOYMENT.md) | How to deploy to production |
+| [Testing Guide](./TESTING.md) | How to run tests and verify functionality |
 
 ---
 
