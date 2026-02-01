@@ -170,11 +170,13 @@ export class EASAttestationService {
 
     // Encode attestation data using our registered schema
     const abiCoder = new ethers.AbiCoder();
+    // Convert internal score (0-100) to FICO-style (300-850)
+    const ficoScore = Math.round(300 + (creditScore.score / 100) * 550);
     const encodedData = abiCoder.encode(
       CREDIT_SCHEMA.types,
       [
-        creditScore.ficoDisplay || Math.round(creditScore.score),  // uint16 score (FICO)
-        creditScore.levelName || 'Unknown',                        // string level
+        ficoScore,                                // uint16 score (FICO)
+        creditScore.levelName || 'Unknown',       // string level
       ]
     );
 

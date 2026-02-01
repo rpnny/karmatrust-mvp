@@ -74,6 +74,11 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [processingTime, setProcessingTime] = useState<number | null>(null);
+  
+  // Privacy Mode state
+  const [isPrivacyMode, setIsPrivacyMode] = useState(false);
+  const [userSalt, setUserSalt] = useState('');
+  const [userCommitment, setUserCommitment] = useState('');
 
   /**
    * Generate a new ZK proof
@@ -84,10 +89,24 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
     setProcessingTime(null);
 
     try {
+      // Build request body
+      const requestBody: any = { wallet };
+      
+      // Privacy Mode: Include salt and commitment
+      if (isPrivacyMode) {
+        if (!userSalt || !userCommitment) {
+          setError('Privacy Mode requires both salt and commitment');
+          setLoading(false);
+          return;
+        }
+        requestBody.salt = userSalt;
+        requestBody.commitment = userCommitment;
+      }
+
       const response = await fetch(`${API_BASE}/zkp/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet }),
+        body: JSON.stringify(requestBody),
       });
 
       const data: ProofResponse = await response.json();
@@ -167,12 +186,79 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
               without revealing your exact score
             </p>
 
+            {/* Mode Selection */}
+            <div className="w-full max-w-md mb-4">
+              <div className="flex gap-2 p-1 bg-background rounded-lg border border-gray-800">
+                <button
+                  onClick={() => setIsPrivacyMode(false)}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition ${
+                    !isPrivacyMode
+                      ? 'bg-purple-600 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🌐 Public Mode
+                </button>
+                <button
+                  onClick={() => setIsPrivacyMode(true)}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition ${
+                    isPrivacyMode
+                      ? 'bg-accent text-black'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🔐 Privacy Mode
+                </button>
+              </div>
+            </div>
+
+            {/* Privacy Mode Inputs */}
+            {isPrivacyMode && (
+              <div className="w-full max-w-md space-y-3 mb-4">
+                <div className="text-xs text-gray-400 text-center mb-2">
+                  Use the salt and commitment from your Privacy Attestation
+                </div>
+                
+                {/* Salt Input */}
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Salt (from Privacy Attestation)
+                  </label>
+                  <input
+                    type="text"
+                    value={userSalt}
+                    onChange={(e) => setUserSalt(e.target.value)}
+                    placeholder="0x3d7f42a1c8e9b5d2..."
+                    className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white text-xs font-mono placeholder-gray-600 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50 transition"
+                  />
+                </div>
+
+                {/* Commitment Input */}
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Commitment (from EAS)
+                  </label>
+                  <input
+                    type="text"
+                    value={userCommitment}
+                    onChange={(e) => setUserCommitment(e.target.value)}
+                    placeholder="0x14620111291356635582..."
+                    className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white text-xs font-mono placeholder-gray-600 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50 transition"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Button */}
             <button
               onClick={generateProof}
-              className="bg-purple-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-purple-500 transition transform hover:scale-[1.02] active:scale-[0.98]"
+              className={`px-6 py-2.5 rounded-xl font-semibold transition transform hover:scale-[1.02] active:scale-[0.98] ${
+                isPrivacyMode
+                  ? 'bg-accent text-black hover:bg-accent/90'
+                  : 'bg-purple-600 text-white hover:bg-purple-500'
+              }`}
             >
-              Generate ZK Proof
+              Generate ZK Proof {isPrivacyMode && '(Privacy Mode)'}
             </button>
 
             {/* Error */}

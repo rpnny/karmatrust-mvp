@@ -46,14 +46,21 @@ const verifySchema = z.object({
  * Request Body:
  * - wallet: Ethereum address to generate proof for
  * - tier: (optional) Specific tier to prove. If omitted, uses actual tier.
+ * - salt: (optional) User-provided salt for Privacy Mode
+ * - commitment: (optional) Expected commitment from EAS for Privacy Mode
  * 
  * Response:
  * - proof: The ZK proof (pi_a, pi_b, pi_c)
  * - publicSignals: Public inputs (tier, lowerBound, upperBound, commitment)
  * - commitment: The score commitment (Poseidon hash)
+ * - salt: The salt used (returned for verification)
  * - tier: The tier being proven
  * - tierName: Human-readable tier name
  * - isSimulated: Whether this is a simulation
+ * 
+ * Two modes:
+ * 1. Public Mode: Generate new salt (default)
+ * 2. Privacy Mode: Use provided salt + commitment (validates against EAS)
  * 
  * This is the KEY PRIVACY FEATURE:
  * - User generates proof of tier membership
@@ -63,7 +70,7 @@ const verifySchema = z.object({
  */
 router.post('/generate', async (req: Request, res: Response) => {
   try {
-    const { wallet, tier: requestedTier } = req.body;
+    const { wallet, tier: requestedTier, salt, commitment } = req.body;
 
     // Validate wallet
     if (!wallet || typeof wallet !== 'string') {
@@ -112,10 +119,18 @@ router.post('/generate', async (req: Request, res: Response) => {
       tierToProve = requested;
     }
 
+    // Determine mode (Public or Privacy)
+    const isPrivacyMode = !!(salt && commitment);
+    if (isPrivacyMode) {
+      console.log(`[ZKP] Privacy Mode enabled: Verifying provided salt against commitment`);
+    }
+
     // Generate the proof
     const proofResult = await zkProofService.generateProof(
       scoreResult.score,
-      tierToProve
+      tierToProve,
+      salt,          // Optional: User-provided salt for Privacy Mode
+      commitment     // Optional: Expected commitment for validation
     );
 
     const processingTime = Date.now() - startTime;
@@ -127,6 +142,7 @@ router.post('/generate', async (req: Request, res: Response) => {
         proof: proofResult.proof,
         publicSignals: proofResult.publicSignals,
         commitment: proofResult.commitment,
+        salt: proofResult.salt,
         tier: tierToProve,
         tierName: LEVEL_NAMES[tierToProve],
         bounds: zkProofService.getTierBounds(tierToProve),

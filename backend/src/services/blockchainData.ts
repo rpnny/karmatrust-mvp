@@ -134,13 +134,13 @@ export class BlockchainDataService {
     const txResponse = await fetch(
       `${ETHERSCAN_API_URL}?module=account&action=txlist&address=${wallet}&startblock=0&endblock=99999999&sort=asc&apikey=${ETHERSCAN_API_KEY}`
     );
-    const txData = await txResponse.json();
+    const txData = await txResponse.json() as any;
 
     if (txData.status !== '1' || !txData.result) {
       throw new Error('Etherscan API error: ' + txData.message);
     }
 
-    const transactions = txData.result;
+    const transactions = txData.result as any[];
     const txCount = transactions.length;
 
     // Extract unique protocols (contract addresses interacted with)
@@ -162,7 +162,7 @@ export class BlockchainDataService {
     const balanceResponse = await fetch(
       `${ETHERSCAN_API_URL}?module=account&action=balance&address=${wallet}&tag=latest&apikey=${ETHERSCAN_API_KEY}`
     );
-    const balanceData = await balanceResponse.json();
+    const balanceData = await balanceResponse.json() as any;
     const balanceWei = balanceData.result || '0';
     const balanceEth = parseFloat(ethers.formatEther(balanceWei));
 

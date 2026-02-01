@@ -115,15 +115,24 @@ export class ZKProofService {
    * 
    * @param score - The actual credit score (0-100)
    * @param tier - The tier to prove membership in
+   * @param providedSalt - (Optional) User-provided salt for Privacy Mode
+   * @param expectedCommitment - (Optional) Expected commitment to verify against (from EAS)
    * @returns ZK proof and public signals
+   * 
+   * Two modes:
+   * 1. Public Mode: Generate new salt (backward compatible)
+   * 2. Privacy Mode: Use providedSalt and verify against expectedCommitment
    */
   async generateProof(
     score: number,
-    tier: CreditLevel
+    tier: CreditLevel,
+    providedSalt?: string,
+    expectedCommitment?: string
   ): Promise<{
     proof: ZKProof;
     publicSignals: string[];
     commitment: string;
+    salt: string;
     isSimulated: boolean;
   }> {
     // Validate inputs
@@ -136,17 +145,59 @@ export class ZKProofService {
       throw new Error(`Score ${score} is not in tier ${CreditLevel[tier]} (${bounds.lower}-${bounds.upper})`);
     }
 
-    // Generate salt and commitment
-    const salt = this.generateSalt();
-    const commitment = await this.computeCommitment(score, salt);
+    let salt: bigint;
+    let commitment: string;
+    let saltHex: string;
 
-    console.log(`[ZKP] Generating proof: score=${score}, tier=${CreditLevel[tier]}`);
+    // Privacy Mode: Use user-provided salt
+    if (providedSalt && expectedCommitment) {
+      console.log(`[ZKP] Privacy Mode: Using provided salt`);
+      
+      // Parse salt (support both hex and decimal string formats)
+      try {
+        if (providedSalt.startsWith('0x')) {
+          salt = BigInt(providedSalt);
+          saltHex = providedSalt;
+        } else {
+          // Assume it's a hex string without 0x prefix
+          salt = BigInt('0x' + providedSalt);
+          saltHex = '0x' + providedSalt;
+        }
+      } catch (e) {
+        throw new Error(`Invalid salt format: ${providedSalt}`);
+      }
 
-    if (this.isSimulation) {
-      return this.generateSimulatedProof(score, tier, salt, commitment);
+      // Compute commitment with provided salt
+      commitment = await this.computeCommitment(score, salt);
+
+      // Verify commitment matches expected (from EAS)
+      if (commitment !== expectedCommitment) {
+        console.error(`[ZKP] Commitment mismatch!`);
+        console.error(`[ZKP]   Expected: ${expectedCommitment}`);
+        console.error(`[ZKP]   Computed: ${commitment}`);
+        console.error(`[ZKP]   Score: ${score}, Salt: ${saltHex}`);
+        throw new Error('Commitment mismatch! The salt does not match the on-chain commitment. Please check your salt value.');
+      }
+
+      console.log(`[ZKP] Commitment verified ✅`);
+    } 
+    // Public Mode: Generate new salt (backward compatible)
+    else {
+      console.log(`[ZKP] Public Mode: Generating new salt`);
+      salt = this.generateSalt();
+      saltHex = '0x' + salt.toString(16).padStart(64, '0');
+      commitment = await this.computeCommitment(score, salt);
     }
 
-    return this.generateRealProof(score, tier, salt, commitment);
+    console.log(`[ZKP] Generating proof: score=${score}, tier=${CreditLevel[tier]}, commitment=${commitment.slice(0, 20)}...`);
+
+    if (this.isSimulation) {
+      const result = await this.generateSimulatedProof(score, tier, salt, commitment);
+      return { ...result, salt: saltHex };
+    }
+
+    const result = await this.generateRealProof(score, tier, salt, commitment);
+    return { ...result, salt: saltHex };
   }
 
   /**
@@ -349,7 +400,9 @@ export class ZKProofService {
   async computeCommitment(score: number, salt: bigint): Promise<string> {
     const { poseidon, F } = await initPoseidon();
     const hash = poseidon([BigInt(score), salt]);
-    return F.toString(hash);
+    const hashString = F.toString(hash);
+    // Convert to hex format for consistency with EAS V2
+    return '0x' + BigInt(hashString).toString(16);
   }
 
   /**
