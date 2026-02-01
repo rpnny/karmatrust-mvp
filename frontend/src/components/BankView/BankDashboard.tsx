@@ -32,17 +32,19 @@ import ProofVerifier from '../shared/ProofVerifier';
 interface BankDashboardProps {
   score: CreditScoreData;
   wallet: string;
+  zkProofVerified?: boolean; // Whether ZK proof has been verified
 }
 
 // =============================================================================
 // COMPONENT
 // =============================================================================
 
-export default function BankDashboard({ score, wallet }: BankDashboardProps) {
+export default function BankDashboard({ score, wallet, zkProofVerified = false }: BankDashboardProps) {
   // Determine what the bank is allowed to see
-  const tier = score.levelName;
-  const meetsThreshold = score.score >= 60; // Gold tier threshold
-  const riskLevel = score.risk;
+  // Bank can ONLY see this information AFTER ZK proof is verified
+  const tier = zkProofVerified ? score.levelName : null;
+  const meetsThreshold = zkProofVerified ? (score.score >= 60) : null; // Gold tier threshold
+  const riskLevel = zkProofVerified ? score.risk : null;
 
   return (
     <div className="h-full flex flex-col">
@@ -104,22 +106,40 @@ export default function BankDashboard({ score, wallet }: BankDashboardProps) {
 
             {/* What bank CAN see */}
             <div className="mt-6 text-center">
-              <p className="text-xs text-gray-500 mb-2">
-                Verified via Zero-Knowledge Proof:
-              </p>
-              <div 
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
-                  meetsThreshold 
-                    ? 'bg-green-900/30 text-green-400 border border-green-800' 
-                    : 'bg-red-900/30 text-red-400 border border-red-800'
-                }`}
-              >
-                {meetsThreshold ? '✓' : '✗'}
-                <span className="font-medium">
-                  {meetsThreshold ? 'Meets Gold Threshold' : 'Below Threshold'}
-                </span>
-              </div>
-            </div>
+              {!zkProofVerified ? (
+                <>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Awaiting Zero-Knowledge Proof
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-900/30 text-yellow-400 border border-yellow-800">
+                    ⏳
+                    <span className="font-medium">
+                      No Proof Submitted Yet
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    Bank cannot see any tier information
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Verified via Zero-Knowledge Proof:
+                  </p>
+                  <div 
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+                      meetsThreshold 
+                        ? 'bg-green-900/30 text-green-400 border border-green-800' 
+                        : 'bg-red-900/30 text-red-400 border border-red-800'
+                    }`}
+                  >
+                    {meetsThreshold ? '✓' : '✗'}
+                    <span className="font-medium">
+                      {meetsThreshold ? 'Meets Gold Threshold' : 'Below Threshold'}
+                    </span>
+                  </div>
+                </>
+              )}
           </div>
         </motion.div>
 
@@ -135,35 +155,46 @@ export default function BankDashboard({ score, wallet }: BankDashboardProps) {
           </h3>
 
           <div className="space-y-4">
-            {/* Tier Membership */}
-            <VerifiedClaim
-              label="Credit Tier"
-              value={tier}
-              verified={true}
-              icon="🏆"
-            />
+            {!zkProofVerified ? (
+              <div className="p-6 bg-yellow-900/10 border border-yellow-800 rounded-lg text-center">
+                <p className="text-yellow-400 font-semibold mb-2">⏳ Awaiting ZK Proof</p>
+                <p className="text-xs text-gray-500">
+                  Bank cannot see any tier, risk, or eligibility information until the user submits and verifies a Zero-Knowledge Proof.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Tier Membership */}
+                <VerifiedClaim
+                  label="Credit Tier"
+                  value={tier || 'Unknown'}
+                  verified={true}
+                  icon="🏆"
+                />
 
-            {/* Risk Level */}
-            <VerifiedClaim
-              label="Risk Assessment"
-              value={riskLevel}
-              verified={true}
-              icon="📊"
-              valueColor={
-                riskLevel === 'Low' ? 'text-green-400' :
-                riskLevel === 'Medium' ? 'text-yellow-400' :
-                'text-red-400'
-              }
-            />
+                {/* Risk Level */}
+                <VerifiedClaim
+                  label="Risk Assessment"
+                  value={riskLevel || 'Unknown'}
+                  verified={true}
+                  icon="📊"
+                  valueColor={
+                    riskLevel === 'Low' ? 'text-green-400' :
+                    riskLevel === 'Medium' ? 'text-yellow-400' :
+                    'text-red-400'
+                  }
+                />
 
-            {/* Threshold Check */}
-            <VerifiedClaim
-              label="Loan Eligible"
-              value={meetsThreshold ? 'Yes' : 'No'}
-              verified={true}
-              icon="✅"
-              valueColor={meetsThreshold ? 'text-green-400' : 'text-red-400'}
-            />
+                {/* Threshold Check */}
+                <VerifiedClaim
+                  label="Loan Eligible"
+                  value={meetsThreshold ? 'Yes' : 'No'}
+                  verified={true}
+                  icon="✅"
+                  valueColor={meetsThreshold ? 'text-green-400' : 'text-red-400'}
+                />
+              </>
+            )}
           </div>
         </motion.div>
 
