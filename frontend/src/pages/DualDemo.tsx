@@ -35,7 +35,7 @@ const demoScript = [
   {
     step: 3,
     duration: 5000,
-    subtitle: "Her score: 742 (Gold Tier). Excellent credit! But the bank sees NOTHING yet.",
+    subtitle: "Alice's score: 742 (Gold Tier). Excellent credit! ← Only Alice knows this. Bank still sees NOTHING.",
     leftAction: 'show-score',
     rightAction: 'waiting',
     leftHighlight: 'score-details',
@@ -53,7 +53,7 @@ const demoScript = [
   {
     step: 5,
     duration: 6000,
-    subtitle: "Real ZK proof generated in ~1-2 seconds. This proves she's Gold tier WITHOUT revealing her exact score.",
+    subtitle: "Real ZK proof generated in ~1-2 seconds. The proof will prove Gold tier WITHOUT revealing her exact score (742).",
     leftAction: 'show-proof',
     rightAction: 'waiting',
     leftHighlight: 'proof-result',
@@ -62,7 +62,7 @@ const demoScript = [
   {
     step: 6,
     duration: 4000,
-    subtitle: "Alice submits the proof to the bank...",
+    subtitle: "Alice submits the proof to the bank... Bank is verifying (8ms). Bank STILL doesn't know her tier yet.",
     leftAction: 'submit-proof',
     rightAction: 'receiving-proof',
     leftHighlight: null,
@@ -71,7 +71,7 @@ const demoScript = [
   {
     step: 7,
     duration: 5000,
-    subtitle: "The bank verifies the proof in 8ms. They learn: 'Gold Tier'. They DON'T learn: Her exact score (742).",
+    subtitle: "✅ Verification complete! NOW bank learns: 'Gold Tier'. Bank still DON'T know: Her exact score (742).",
     leftAction: 'proof-submitted',
     rightAction: 'verified',
     leftHighlight: 'alice-sees-all',
@@ -585,8 +585,17 @@ export default function DualDemo({}: DualDemoProps) {
                       </>
                     ) : (
                       <>
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent mx-auto"></div>
-                        <p className="text-gray-400">Receiving proof...</p>
+                        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent mx-auto"></div>
+                        <p className="text-xl text-accent font-semibold">Verifying Proof...</p>
+                        <p className="text-gray-400 text-sm">8ms verification time</p>
+                        <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg">
+                          <p className="text-yellow-400 text-sm font-semibold">
+                            ⏳ Bank does NOT know tier yet
+                          </p>
+                          <p className="text-gray-500 text-xs mt-1">
+                            Cryptographic verification in progress...
+                          </p>
+                        </div>
                       </>
                     )}
                   </div>
@@ -600,9 +609,14 @@ export default function DualDemo({}: DualDemoProps) {
                   <div className="bg-surface rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm text-gray-400">VERIFICATION RESULT</h3>
-                      <span className="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-semibold">
-                        ✅ VERIFIED
+                      <span className="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-semibold animate-pulse">
+                        ✅ JUST VERIFIED
                       </span>
+                    </div>
+                    <div className="mb-4 p-3 bg-green-900/20 border border-green-700 rounded-lg">
+                      <p className="text-green-400 text-sm font-semibold">
+                        🎉 Verification Complete! Bank NOW knows user's tier
+                      </p>
                     </div>
                     <div className="space-y-4">
                       <div>
@@ -631,23 +645,23 @@ export default function DualDemo({}: DualDemoProps) {
                         </div>
                       </div>
                       <div className="border-t border-gray-700 pt-4">
-                        <p className="text-xs text-gray-500 mb-3">HIDDEN INFORMATION:</p>
+                        <p className="text-xs text-gray-500 mb-3">STILL HIDDEN (Even after verification):</p>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Exact score:</span>
-                            <span className="text-gray-600 font-mono">[ENCRYPTED]</span>
+                            <span className="text-gray-600">Exact score (742):</span>
+                            <span className="text-red-500 font-mono font-bold">[ENCRYPTED]</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Wallet balance:</span>
-                            <span className="text-gray-600 font-mono">[ENCRYPTED]</span>
+                            <span className="text-red-500 font-mono font-bold">[ENCRYPTED]</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Transaction history:</span>
-                            <span className="text-gray-600 font-mono">[ENCRYPTED]</span>
+                            <span className="text-red-500 font-mono font-bold">[ENCRYPTED]</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Protocols used:</span>
-                            <span className="text-gray-600 font-mono">[ENCRYPTED]</span>
+                            <span className="text-red-500 font-mono font-bold">[ENCRYPTED]</span>
                           </div>
                         </div>
                       </div>
