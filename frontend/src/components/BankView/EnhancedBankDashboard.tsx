@@ -23,7 +23,10 @@ import { CreditScoreData } from '../../hooks/useCredit';
 interface EnhancedBankDashboardProps {
   score: CreditScoreData;
   wallet: string;
-  zkProofVerified?: boolean;
+  zkProofGenerated?: boolean;  // User generated proof
+  zkProofVerified?: boolean;    // Bank verified proof
+  zkProofData?: any;            // Proof data
+  onVerifyProof?: () => void;   // Verify callback
 }
 
 interface BridgeData {
@@ -55,8 +58,11 @@ interface VCSMState {
 
 export default function EnhancedBankDashboard({ 
   score, 
-  wallet, 
-  zkProofVerified = false 
+  wallet,
+  zkProofGenerated = false,
+  zkProofVerified = false,
+  zkProofData,
+  onVerifyProof
 }: EnhancedBankDashboardProps) {
   const [bridgeData, setBridgeData] = useState<BridgeData | null>(null);
   const [loadingBridge, setLoadingBridge] = useState(true);
@@ -145,7 +151,9 @@ export default function EnhancedBankDashboard({
             wallet={wallet}
             bridgeData={bridgeData}
             loadingBridge={loadingBridge}
+            zkProofGenerated={zkProofGenerated}
             zkProofVerified={zkProofVerified}
+            onVerifyProof={onVerifyProof}
           />
         )}
         {activeTab === 'vcsm' && (
@@ -168,13 +176,17 @@ function OverviewTab({
   wallet, 
   bridgeData, 
   loadingBridge,
-  zkProofVerified 
+  zkProofGenerated,
+  zkProofVerified,
+  onVerifyProof
 }: {
   score: CreditScoreData;
   wallet: string;
   bridgeData: BridgeData | null;
   loadingBridge: boolean;
+  zkProofGenerated: boolean;
   zkProofVerified: boolean;
+  onVerifyProof?: () => void;
 }) {
   return (
     <div className="space-y-6">
@@ -306,32 +318,58 @@ function OverviewTab({
         </div>
       </motion.div>
 
-      {/* ZK Proof Status */}
+      {/* ZK Proof Status & Verification */}
       <motion.div
         className={`rounded-xl p-4 border ${
           zkProofVerified 
-            ? 'bg-green-900/20 border-green-800' 
-            : 'bg-yellow-900/20 border-yellow-800'
+            ? 'bg-green-900/20 border-green-800'
+            : zkProofGenerated
+            ? 'bg-purple-900/20 border-purple-700'
+            : 'bg-gray-900/20 border-gray-700'
         }`}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">{zkProofVerified ? '✅' : '⏳'}</span>
-            <div>
-              <div className="text-sm font-semibold text-white">
-                {zkProofVerified ? 'ZK Proof Verified' : 'Awaiting ZK Proof'}
-              </div>
-              <div className="text-xs text-gray-400">
-                {zkProofVerified 
-                  ? 'Tier membership cryptographically proven'
-                  : 'Privacy-protected until proof submitted'
-                }
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">
+                {zkProofVerified ? '✅' : zkProofGenerated ? '📥' : '⏳'}
+              </span>
+              <div>
+                <div className="text-sm font-semibold text-white">
+                  {zkProofVerified 
+                    ? 'ZK Proof Verified ✓'
+                    : zkProofGenerated
+                    ? 'Proof Received - Awaiting Verification'
+                    : 'No Proof Submitted'
+                  }
+                </div>
+                <div className="text-xs text-gray-400">
+                  {zkProofVerified 
+                    ? 'Tier membership cryptographically proven'
+                    : zkProofGenerated
+                    ? 'User submitted proof. Click to verify.'
+                    : 'User needs to generate proof first'
+                  }
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Verify Button */}
+          {zkProofGenerated && !zkProofVerified && (
+            <button
+              onClick={onVerifyProof}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Verify ZK Proof</span>
+            </button>
+          )}
         </div>
       </motion.div>
     </div>

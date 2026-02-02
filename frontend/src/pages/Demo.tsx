@@ -25,7 +25,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useCredit } from '../hooks/useCredit';
-import UserDashboard from '../components/UserView/UserDashboard';
+import EnhancedUserDashboard from '../components/UserView/EnhancedUserDashboard';
 import EnhancedBankDashboard from '../components/BankView/EnhancedBankDashboard';
 
 // =============================================================================
@@ -50,8 +50,10 @@ export default function Demo() {
   const [inputWallet, setInputWallet] = useState(urlWallet || '');
   const [activeWallet, setActiveWallet] = useState(urlWallet || '');
   
-  // State for ZK proof verification (bank should only see info after proof is verified)
-  const [zkProofVerified, setZkProofVerified] = useState(false);
+  // State for ZK proof workflow
+  const [zkProofGenerated, setZkProofGenerated] = useState(false); // User generated proof
+  const [zkProofData, setZkProofData] = useState<any>(null); // Proof data
+  const [zkProofVerified, setZkProofVerified] = useState(false); // Bank verified proof
 
   // Fetch credit score
   const { score, loading, error, refetch } = useCredit(activeWallet);
@@ -61,7 +63,10 @@ export default function Demo() {
     e.preventDefault();
     if (inputWallet && /^0x[a-fA-F0-9]{40}$/.test(inputWallet)) {
       setActiveWallet(inputWallet);
-      setZkProofVerified(false); // Reset proof verification when changing wallet
+      // Reset proof states when changing wallet
+      setZkProofGenerated(false);
+      setZkProofData(null);
+      setZkProofVerified(false);
       navigate(`/demo/${inputWallet}`, { replace: true });
     }
   };
@@ -70,8 +75,25 @@ export default function Demo() {
   const handleExampleClick = (address: string) => {
     setInputWallet(address);
     setActiveWallet(address);
-    setZkProofVerified(false); // Reset proof verification when changing wallet
+    // Reset proof states when changing wallet
+    setZkProofGenerated(false);
+    setZkProofData(null);
+    setZkProofVerified(false);
     navigate(`/demo/${address}`, { replace: true });
+  };
+
+  // Handle proof generation from User View
+  const handleGenerateProof = (proofData: any) => {
+    setZkProofData(proofData);
+    setZkProofGenerated(true);
+    setZkProofVerified(false); // Needs verification by bank
+  };
+
+  // Handle proof verification from Bank View
+  const handleVerifyProof = () => {
+    if (zkProofData) {
+      setZkProofVerified(true);
+    }
   };
 
   return (
@@ -202,7 +224,12 @@ export default function Demo() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left: User View */}
               <div className="bg-surface/30 rounded-2xl p-6 border border-primary/20 min-h-[600px]">
-                <UserDashboard score={score} wallet={activeWallet} />
+                <EnhancedUserDashboard 
+                  score={score} 
+                  wallet={activeWallet}
+                  onGenerateProof={handleGenerateProof}
+                  zkProofGenerated={zkProofGenerated}
+                />
               </div>
 
               {/* Divider (Desktop) */}
@@ -214,42 +241,66 @@ export default function Demo() {
 
               {/* Right: Bank/Protocol View */}
               <div className="bg-surface/30 rounded-2xl p-6 border border-accent/20 min-h-[600px]">
-                <EnhancedBankDashboard score={score} wallet={activeWallet} zkProofVerified={zkProofVerified} />
+                <EnhancedBankDashboard 
+                  score={score} 
+                  wallet={activeWallet}
+                  zkProofGenerated={zkProofGenerated}
+                  zkProofVerified={zkProofVerified}
+                  zkProofData={zkProofData}
+                  onVerifyProof={handleVerifyProof}
+                />
               </div>
             </div>
 
-            {/* ZK Proof Control */}
-            {!zkProofVerified && (
-              <motion.div 
-                className="mt-6 bg-purple-900/20 border border-purple-700 rounded-xl p-6"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-              >
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-3xl">🔒</span>
-                    <div>
-                      <h3 className="text-white font-semibold mb-1">
-                        ZK Proof Not Verified Yet
-                      </h3>
-                      <p className="text-gray-400 text-sm">
-                        Bank View is privacy-protected. Click to simulate ZK proof verification.
-                      </p>
+            {/* ZK Proof Workflow Status */}
+            <motion.div 
+              className={`mt-6 rounded-xl p-6 border ${
+                zkProofVerified 
+                  ? 'bg-green-900/20 border-green-700'
+                  : zkProofGenerated
+                  ? 'bg-yellow-900/20 border-yellow-700'
+                  : 'bg-gray-900/20 border-gray-700'
+              }`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl">
+                    {zkProofVerified ? '✅' : zkProofGenerated ? '📤' : '🔒'}
+                  </span>
+                  <div>
+                    <h3 className="text-white font-semibold mb-1">
+                      {zkProofVerified 
+                        ? 'ZK Proof Verified ✓'
+                        : zkProofGenerated
+                        ? 'Proof Generated - Ready for Verification'
+                        : 'No Proof Generated Yet'
+                      }
+                    </h3>
+                    <p className="text-gray-400 text-sm">
+                      {zkProofVerified 
+                        ? 'Bank has verified your tier cryptographically. Full access granted.'
+                        : zkProofGenerated
+                        ? 'User generated proof. Bank can now verify without seeing raw data.'
+                        : 'User needs to generate a ZK proof first (left side).'
+                      }
+                    </p>
+                  </div>
+                </div>
+                {zkProofGenerated && !zkProofVerified && (
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-2">
+                      👉 Click "Verify Proof" in Bank View
+                    </div>
+                    <div className="text-2xl animate-bounce">
+                      →
                     </div>
                   </div>
-                  <button
-                    onClick={() => setZkProofVerified(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2 whitespace-nowrap"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Verify ZK Proof (Simulate)
-                  </button>
-                </div>
-              </motion.div>
-            )}
+                )}
+              </div>
+            </motion.div>
 
             {/* Privacy Explanation Banner */}
             <motion.div 
