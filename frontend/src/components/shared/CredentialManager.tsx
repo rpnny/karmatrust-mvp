@@ -428,12 +428,6 @@ export default function CredentialManager({
                 >
                   View on EASScan ↗
                 </a>
-
-                <div className="p-3 bg-blue-900/20 border border-blue-800 rounded mt-3">
-                  <p className="text-xs text-blue-400">
-                    💡 <span className="font-semibold">Next:</span> Use the <span className="font-bold text-white">ZK Proof Generator</span> below to create a privacy-preserving proof for banks!
-                  </p>
-                </div>
               </div>
             </div>
           </motion.div>
