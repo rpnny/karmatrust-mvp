@@ -18,13 +18,15 @@
 
 ## Overview
 
-DAISY is KarmaTrust's core technology stack - a unified infrastructure that combines three cryptographic primitives to enable privacy-preserving, verifiable credit scoring for DeFi:
+DAISY is KarmaTrust's core technology stack - the bridge infrastructure connecting Traditional Finance and DeFi through standardized, privacy-preserving credit scoring.
 
-1. **EAS Attestations** (Decentralized Attestation Layer)
-2. **VCSM State Machine** (Infrastructure Layer)
-3. **Groth16 ZK Circuits** (Security Layer: Secured by Zero-Knowledge Proofs)
+**The Bridge Architecture**:
+1. **EAS Attestations** (Decentralized Attestation Layer) - On-chain verifiable credentials
+2. **VCSM State Machine** (Infrastructure Layer) - Credit as an evolving state machine
+3. **Groth16 ZK Circuits** (Security Layer) - Privacy-preserving proofs
+4. **Translation Layer** (NEW) - Bidirectional TradFi ↔️ DeFi conversion
 
-**Design Philosophy**: Security, privacy, and verifiability are not features - they are architectural guarantees.
+**Design Philosophy**: Bridge the gap between two massive financial systems that couldn't communicate before. Security, privacy, and verifiability are architectural guarantees, not features.
 
 ---
 
@@ -35,15 +37,16 @@ DAISY is KarmaTrust's core technology stack - a unified infrastructure that comb
 ```
 D - Decentralized        → No central credit bureau
 A - Attestation          → EAS integration for on-chain credentials
-I - Infrastructure       → B2B platform, not end-user app
+I - Infrastructure       → Bridge layer connecting TradFi & DeFi
 S - Secured by           → Security-first design
 Y - Zero-Knowledge       → Privacy by default (Groth16 ZK proofs)
 ```
 
 ### The Symbolism
 
-- **Daisy Chain**: A technical term for connecting components in series - perfectly describes our cryptographic hash chain in VCSM
-- **Fresh as a Daisy**: Represents our clean-slate approach to DeFi credit (not porting legacy FICO)
+- **Daisy Chain**: A technical term for connecting components in series - perfectly describes both our cryptographic hash chain (VCSM) and our bridge connecting two financial systems
+- **Bridge Builder**: DAISY connects TradFi and DeFi, enabling communication between systems that couldn't talk before
+- **Universal Standard**: Like SWIFT for international payments, DAISY for cross-system credit
 - **Simple & Memorable**: Easy to reference in developer documentation and integrations
 
 ---
@@ -53,12 +56,19 @@ Y - Zero-Knowledge       → Privacy by default (Groth16 ZK proofs)
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                   Application Layer                          │
-│  DeFi Protocols: Aave, Compound, Uniswap, Custom Lenders   │
-│           (Consume DAISY via REST API or SDK)               │
+│   LEFT: TradFi Banks          RIGHT: DeFi Protocols         │
+│   (FICO, Ratings, Reports)    (Tiers, Ratios, ZK Proofs)    │
+│                                                              │
+│   Both consume DAISY via REST API or SDK                     │
 ├─────────────────────────────────────────────────────────────┤
-│                     DAISY API Layer                          │
-│  Endpoints: /credit/score, /credit/attest, /zkp/generate   │
-│            /vcsm/initialize, /vcsm/transition               │
+│                  DAISY Bridge API Layer                      │
+│                                                              │
+│  TradFi Endpoints:            DeFi Endpoints:                │
+│  • /bridge/to-tradfi         • /bridge/to-defi              │
+│  • /credit/score (FICO)      • /zkp/generate                │
+│                                                              │
+│  Common:                                                     │
+│  • /bridge/both              • /vcsm/transition             │
 ├─────────────────────────────────────────────────────────────┤
 │                  DAISY Core Components                       │
 │  ┌──────────────┬────────────────┬───────────────────────┐ │
@@ -69,6 +79,10 @@ Y - Zero-Knowledge       → Privacy by default (Groth16 ZK proofs)
 │  │ • Hash chain │ • Schema reg.  │ • Anti-sybil constraints│
 │  │ • Rules      │ • Commitments  │ • Poseidon hash       │ │
 │  └──────────────┴────────────────┴───────────────────────┘ │
+│                                                              │
+│              Bridge Translator Service (NEW)                 │
+│              • TradFi Format ←→ DeFi Format                  │
+│              • FICO ←→ Tier conversion                       │
 ├─────────────────────────────────────────────────────────────┤
 │                  Smart Contract Layer                        │
 │  VCSMStateManager.sol  |  TieredLending.sol (deployed)     │
@@ -252,8 +266,8 @@ const isValid = await daisy.verifyProof(proof);
 
 ### DAISY vs. Traditional Credit Systems
 
-| Feature | Traditional (FICO) | DAISY |
-|---------|-------------------|-------|
+| Feature | Traditional (FICO) | DAISY Bridge |
+|---------|-------------------|--------------|
 | **Trust Model** | Trust the bureau | Verify the math |
 | **Privacy** | Full disclosure | Zero-knowledge proofs |
 | **Verifiability** | Opaque algorithm | Open-source circuits |
@@ -261,17 +275,36 @@ const isValid = await daisy.verifyProof(proof);
 | **State Tracking** | Snapshot scores | State machine + hash chain |
 | **Decentralization** | Centralized | On-chain (EAS + blockchain) |
 | **Integration** | Proprietary APIs | Open REST API + SDK |
+| **Language** | FICO only | **Both FICO & Tiers** ⭐ |
+| **Market** | TradFi only | **TradFi + DeFi** ⭐ |
 
 ### DAISY vs. Other DeFi Credit Projects
 
-| Project | Approach | Privacy | Anti-Sybil | Verifiability |
-|---------|----------|---------|-----------|---------------|
-| **DAISY** | State machine + ZK | ✅ ZK proofs | ✅ Circuit-level | ✅ Hash chain |
-| Project A | NFT badges | ❌ Public | ⚠️ Server-side | ❌ Trust-based |
-| Project B | Simple scoring | ❌ Public | ⚠️ Backend logic | ❌ Opaque |
-| Project C | Oracle-based | ❌ Public | ❌ None | ⚠️ Oracle trust |
+| Project | Market | Privacy | Bridge | Verifiability |
+|---------|--------|---------|--------|---------------|
+| **DAISY** | **TradFi + DeFi** ⭐ | ✅ ZK proofs | ✅ Both formats | ✅ Hash chain |
+| Project A | DeFi only | ❌ Public | ❌ DeFi-only | ❌ Trust-based |
+| Project B | DeFi only | ❌ Public | ❌ Novel metrics | ❌ Opaque |
+| Project C | DeFi only | ❌ Public | ❌ No TradFi format | ⚠️ Oracle trust |
 
-**DAISY's Unique Value**: Only system with cryptographic guarantees at every layer
+**DAISY's Unique Value**: 
+- ⭐ Only bridge connecting TradFi and DeFi
+- ⭐ Speaks both languages (FICO & Tiers)
+- ⭐ Serves both markets simultaneously
+- ✅ Cryptographic guarantees at every layer
+
+### Market Position
+
+```
+Other Projects:           DAISY:
+   DeFi                TradFi ←→ DeFi
+    │                     │
+    │                  Bridge
+    │                  Position
+    ↓                     ↓
+  $50B              $100T + $50B
+  market            opportunity
+```
 
 ---
 
