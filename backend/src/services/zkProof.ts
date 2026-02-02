@@ -396,13 +396,14 @@ export class ZKProofService {
 
   /**
    * Compute Poseidon commitment: hash(score, salt)
+   * MUST match the implementation in easAttestationV2.ts
    */
   async computeCommitment(score: number, salt: bigint): Promise<string> {
     const { poseidon, F } = await initPoseidon();
     const hash = poseidon([BigInt(score), salt]);
-    const hashString = F.toString(hash);
-    // Convert to hex format for consistency with EAS V2
-    return '0x' + BigInt(hashString).toString(16);
+    // IMPORTANT: Use padStart(64, '0') to ensure consistent hex format
+    // This MUST match easAttestationV2.computeCommitment()
+    return '0x' + F.toString(hash, 16).padStart(64, '0');
   }
 
   /**
