@@ -12,7 +12,7 @@
  * Purpose: Demonstrate to hackathon judges that we have a COMPLETE tech stack
  */
 
-import { useState, useEffect } from 'motion/framer-motion';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CreditScoreData } from '../../hooks/useCredit';
 
