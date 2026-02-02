@@ -50,22 +50,36 @@ export default function ZKProofGenerator({
     setZkProof(null);
 
     try {
+      // Normalize address to lowercase to avoid checksum issues
+      const normalizedWallet = wallet.toLowerCase();
+      
       const response = await fetch('http://localhost:3000/api/zkp/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          wallet,
-          minimumTier: selectedTier,
+          wallet: normalizedWallet,
+          tier: selectedTier,
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate proof');
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to generate proof');
       }
 
-      const data = await response.json();
-      setZkProof(data);
+      // Backend returns { success: true, data: { proof, publicSignals, ... } }
+      // Create proof string for display and copying
+      const proofString = JSON.stringify({
+        proof: data.data.proof,
+        publicSignals: data.data.publicSignals,
+      }, null, 2);
+
+      setZkProof({
+        proof: data.data.proof,
+        publicSignals: data.data.publicSignals,
+        proofString: proofString,
+      });
     } catch (err: any) {
       console.error('Proof generation error:', err);
       setError(err.message || 'Failed to generate ZK proof');

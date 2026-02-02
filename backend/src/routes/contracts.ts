@@ -16,6 +16,7 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import { isAddress } from 'ethers';
 import { contractService } from '../services/contracts/contractService.js';
 
 const router = Router();
@@ -24,12 +25,17 @@ const router = Router();
 // REQUEST VALIDATORS
 // =========================================================================
 
+const addressValidator = z.string().refine(
+  (addr) => isAddress(addr),
+  { message: 'Invalid Ethereum address' }
+);
+
 const walletSchema = z.object({
-  wallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address'),
+  wallet: addressValidator,
 });
 
 const collateralQuerySchema = z.object({
-  wallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address'),
+  wallet: addressValidator,
   amount: z.string().regex(/^\d+(\.\d+)?$/, 'Invalid amount'),
 });
 
@@ -39,7 +45,7 @@ const savingsQuerySchema = z.object({
 });
 
 const attestStateSchema = z.object({
-  wallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address'),
+  wallet: addressValidator,
   stateHash: z.string().regex(/^0x[a-fA-F0-9]{64}$/, 'Invalid state hash'),
   level: z.number().int().min(1).max(5),
 });

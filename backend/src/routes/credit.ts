@@ -18,6 +18,7 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import { isAddress } from 'ethers';
 import { creditScoringService } from '../services/creditScoring.js';
 import { easAttestationService } from '../services/easAttestation.js';
 import { easAttestationServiceV2, computeCommitment, generateSalt } from '../services/easAttestationV2.js';
@@ -32,13 +33,12 @@ const router = Router();
 /**
  * Wallet address validation schema
  * 
- * Requirements:
- * - Must start with '0x'
- * - Must be 42 characters (0x + 40 hex chars)
- * - Must be valid hex
+ * Uses ethers.js isAddress() for robust validation including checksum addresses
  */
-const walletSchema = z.string()
-  .regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address format');
+const walletSchema = z.string().refine(
+  (addr) => isAddress(addr),
+  { message: 'Invalid Ethereum address format' }
+);
 
 // =============================================================================
 // ROUTES

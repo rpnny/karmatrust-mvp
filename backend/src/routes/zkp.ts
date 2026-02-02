@@ -12,6 +12,7 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import { isAddress } from 'ethers';
 import { zkProofService } from '../services/zkProof.js';
 import { creditScoringService } from '../services/creditScoring.js';
 import { CreditLevel, LEVEL_NAMES } from '../types/index.js';
@@ -22,7 +23,10 @@ const router = Router();
 // VALIDATION SCHEMAS
 // =============================================================================
 
-const walletSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address');
+const walletSchema = z.string().refine(
+  (addr) => isAddress(addr),
+  { message: 'Invalid Ethereum address' }
+);
 
 const verifySchema = z.object({
   proof: z.object({
@@ -85,7 +89,7 @@ router.post('/generate', async (req: Request, res: Response) => {
     if (!validationResult.success) {
       return res.status(400).json({
         success: false,
-        error: validationResult.error.errors[0].message,
+        error: 'Invalid Ethereum address format',
         meta: { timestamp: Date.now() },
       });
     }

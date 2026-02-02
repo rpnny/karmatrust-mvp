@@ -13,6 +13,7 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import { isAddress } from 'ethers';
 import { vcsmService, formatStateForResponse, getAllUpgradeRules } from '../services/vcsm/index.js';
 import { creditScoringService } from '../services/creditScoring.js';
 import { LEVEL_NAMES, CreditLevel } from '../types/index.js';
@@ -23,7 +24,10 @@ const router = Router();
 // VALIDATION SCHEMAS
 // =============================================================================
 
-const walletSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address');
+const walletSchema = z.string().refine(
+  (addr) => isAddress(addr),
+  { message: 'Invalid Ethereum address' }
+);
 
 const initSchema = z.object({
   userId: walletSchema,
