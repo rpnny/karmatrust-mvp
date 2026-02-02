@@ -739,7 +739,7 @@ This is a hackathon MVP. For production:
 
 ## 📈 Performance
 
-**Verified Performance** (from test suite - see `SYSTEM_TEST_REPORT*.md`):
+**Verified Performance** (from comprehensive test suite - see [TEST_RESULTS.md](./TEST_RESULTS.md)):
 
 | Operation | Time | Notes |
 |-----------|------|-------|
@@ -748,9 +748,9 @@ This is a hackathon MVP. For production:
 | EAS attestation | ~15s | On-chain transaction |
 | State transition | ~1s | In-memory (MVP) |
 
-**Test Results**: 12/12 tests passed (100%) | Stress test: 10/10 requests (100% success rate)
+**Test Results**: 56/56 tests passed (100%) across all systems
 
-> 💡 Run `./test-system-simple.sh` to validate performance on your machine
+> 💡 See [TESTING.md](./TESTING.md) for detailed testing instructions and [ZK_PROOF_TEST.md](./ZK_PROOF_TEST.md) for ZK proof validation
 
 ---
 
@@ -882,7 +882,8 @@ Comprehensive guides and technical deep dives:
 | [Architecture](./docs/ARCHITECTURE.md) | System architecture and design decisions |
 | [Deployment Guide](./docs/DEPLOYMENT.md) | How to deploy to production |
 | [Testing Guide](./TESTING.md) | How to run tests and verify functionality |
-| [**Test Results**](./SYSTEM_TEST_REPORT*.md) | **✅ Latest system test report (12/12 passed)** |
+| [**Test Results**](./TEST_RESULTS.md) | **✅ Comprehensive test report (56/56 passed)** |
+| [ZK Proof Validation](./ZK_PROOF_TEST.md) | Real Groth16 proof generation verification |
 
 ---
 
@@ -897,9 +898,10 @@ MIT License - see [LICENSE](./LICENSE)
 | Resource | URL |
 |----------|-----|
 | GitHub | https://github.com/rpnny/karmatrust-mvp |
-| Demo | [Coming Soon] |
-| Deployed Contracts | [Coming Soon] |
-| EAS Schema | [Sepolia EASScan] |
+| VCSMStateManager | [0x2113...E273 (Sepolia)](https://sepolia.etherscan.io/address/0x2113Dd751B588D807aA37e7D714864666d35E273) |
+| TieredLending | [0x37bA...6725 (Sepolia)](https://sepolia.etherscan.io/address/0x37bA854436157064F6d502DBA620778336116725) |
+| Demo Video | [Recording in Progress] |
+| EAS Attestations | [Sepolia EASScan](https://sepolia.easscan.org/) |
 
 ---
 
