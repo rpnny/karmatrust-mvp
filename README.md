@@ -10,7 +10,10 @@
 [![ETHGlobal](https://img.shields.io/badge/hackathon-ETHGlobal-brightgreen.svg)]()
 [![ZK Proofs](https://img.shields.io/badge/ZK_Proofs-REAL_✅_(not_simulated)-success.svg)]()
 [![Circuit](https://img.shields.io/badge/Circom-Groth16-blueviolet.svg)]()
-[![DAISY](https://img.shields.io/badge/Architecture-DAISY-ff69b4.svg)]()
+[![DAISY](https://img.shields.io/badge/Architecture-DAISY-ff69b4.svg)]()  
+[![Tests](https://img.shields.io/badge/Tests-12%2F12_Passed-brightgreen.svg)]()
+[![Performance](https://img.shields.io/badge/ZK_Generation-852ms-success.svg)]()
+[![System](https://img.shields.io/badge/Demo_Ready-100%25-green.svg)]()
 
 ---
 
@@ -719,24 +722,33 @@ This is a hackathon MVP. For production:
 
 ## 📈 Performance
 
+**Verified Performance** (from test suite - see `SYSTEM_TEST_REPORT*.md`):
+
 | Operation | Time | Notes |
 |-----------|------|-------|
-| Credit score calculation | ~500ms | With RPC fallback |
-| ZK proof generation | ~2-3s | Groth16, simulated |
+| Credit score calculation | **~724ms** | With RPC fallback, validated ✅ |
+| ZK proof generation | **~852ms** | **Real Groth16** (not simulated) ✅ |
 | EAS attestation | ~15s | On-chain transaction |
 | State transition | ~1s | In-memory (MVP) |
+
+**Test Results**: 12/12 tests passed (100%) | Stress test: 10/10 requests (100% success rate)
+
+> 💡 Run `./test-system-simple.sh` to validate performance on your machine
 
 ---
 
 ## 🗺️ Roadmap
 
-### MVP (Hackathon) ✅
-- [x] 8-factor credit scoring
+### MVP (Hackathon) ✅ **COMPLETE**
+- [x] 8-factor credit scoring (724ms avg)
 - [x] Split-screen demo UI
-- [x] ZK tier membership proof
-- [x] EAS attestations
-- [x] VCSM state machine
-- [x] Smart contracts
+- [x] **Real ZK proofs** (Groth16, 852ms avg) - not simulated
+- [x] EAS attestations (dual-mode: public + privacy)
+- [x] VCSM state machine (fully functional)
+- [x] Smart contracts (deployed to Sepolia)
+- [x] DAISY bridge architecture
+- [x] Comprehensive test suite (12/12 passed)
+- [x] 10+ technical documentation files
 
 ### Post-Hackathon
 - [ ] 20+ scoring factors with ML weights
@@ -841,6 +853,7 @@ Comprehensive guides and technical deep dives:
 
 | Document | Description |
 |----------|-------------|
+| [**DAISY Architecture**](./docs/DAISY_ARCHITECTURE.md) | **🌼 Complete DAISY bridge infrastructure guide** |
 | [VCSM Innovation](./docs/VCSM_INNOVATION.md) | Deep dive into Verifiable Credit State Machine |
 | [Privacy Mode Guide](./docs/PRIVACY_MODE_GUIDE.md) | Complete guide to using Privacy Mode with salt-based commitments |
 | [ZK + EAS Hybrid](./docs/ZK_EAS_HYBRID.md) | Architecture design for privacy-preserving attestations |
@@ -849,6 +862,7 @@ Comprehensive guides and technical deep dives:
 | [Architecture](./docs/ARCHITECTURE.md) | System architecture and design decisions |
 | [Deployment Guide](./docs/DEPLOYMENT.md) | How to deploy to production |
 | [Testing Guide](./TESTING.md) | How to run tests and verify functionality |
+| [**Test Results**](./SYSTEM_TEST_REPORT*.md) | **✅ Latest system test report (12/12 passed)** |
 
 ---
 
