@@ -1,8 +1,6 @@
 # 🏆 KarmaTrust
 
-> **Hackathon MVP: On-Chain Credit Scoring with Zero-Knowledge Privacy**
->
-> *Think FICO for DeFi - proving creditworthiness without exposing your wallet*
+> **Powered by DAISY: Decentralized Attestation Infrastructure Secured by Zero-Knowledge Proofs**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Status](https://img.shields.io/badge/status-MVP-yellow.svg)]()
@@ -10,6 +8,40 @@
 [![ETHGlobal](https://img.shields.io/badge/hackathon-ETHGlobal-brightgreen.svg)]()
 [![ZK Proofs](https://img.shields.io/badge/ZK_Proofs-REAL_✅_(not_simulated)-success.svg)]()
 [![Circuit](https://img.shields.io/badge/Circom-Groth16-blueviolet.svg)]()
+[![DAISY](https://img.shields.io/badge/Architecture-DAISY-ff69b4.svg)]()
+
+---
+
+## 🌼 What is DAISY?
+
+**DAISY (Decentralized Attestation Infrastructure Secured by Zero-Knowledge Proofs)** is KarmaTrust's core technology stack - the world's first credit infrastructure that combines:
+
+- **D**ecentralized → EAS attestations (no central authority)
+- **A**ttestation → On-chain verifiable credentials
+- **I**nfrastructure → B2B platform for DeFi protocols
+- **S**ecured by → Security-first design
+- **Y** → **Zero-Knowledge** proofs (privacy by default)
+
+**Architecture**: KarmaTrust provides DAISY as infrastructure (like FICO provides credit scores). DeFi protocols integrate DAISY to enable undercollateralized lending.
+
+```
+┌─────────────────────────────────────────────────┐
+│           KarmaTrust (Company/Brand)            │
+│                                                 │
+│   ┌─────────────────────────────────────────┐   │
+│   │  DAISY (Core Technology Stack)          │   │
+│   │                                         │   │
+│   │  ┌──────────┬──────────┬─────────────┐ │   │
+│   │  │   VCSM   │   EAS    │ ZK Circuits │ │   │
+│   │  │  Engine  │   Layer  │  (Groth16)  │ │   │
+│   │  └──────────┴──────────┴─────────────┘ │   │
+│   └─────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────┘
+        ↓
+   DeFi Protocols (Aave, Compound, etc.)
+```
+
+**Read more**: [DAISY Architecture](./docs/DAISY_ARCHITECTURE.md)
 
 ---
 
