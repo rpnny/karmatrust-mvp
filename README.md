@@ -514,14 +514,14 @@ This is closer to how **Ethereum itself works** (state transitions with proofs) 
 
 ## ⭐ Key Innovation: Anti-Sybil in ZK Circuit
 
-**This is how VCSM enforces honesty at the cryptographic level.**
+**Goal: Enforce honesty at the cryptographic level.**
 
 Traditional sybil defense runs in backend code → attackers can bypass it.
 
 We embed anti-sybil constraints **directly in the ZK circuit**:
 
 ```circom
-// state_transition.circom
+// state_transition.circom (for state upgrades)
 
 // Private input (hidden from verifier)
 signal input sybilScore;
@@ -533,13 +533,76 @@ signal input minSybilScore;  // e.g., 35 for Gold tier
 component sybilCheck = GreaterEqThan(8);
 sybilCheck.in[0] <== sybilScore;
 sybilCheck.in[1] <== minSybilScore;
-sybilCheck.out === 1;  // Proof fails if wallet age too low!
+sybilCheck.out === 1;  // Proof fails if sybil score too low!
 ```
 
-**Why this matters**:
-- 💰 Even with infinite money, you can't fake a 2-year-old wallet
+**Design Intent**:
+- 💰 With proper oracle signature verification, even infinite money can't fake a 2-year-old wallet
 - 🔒 The proof mathematically cannot be generated if constraints fail
-- ✅ No server-side bypass possible
+- ✅ Cryptographically enforced (not just server-side checks)
+
+### ⚠️ MVP Trust Assumption (Critical Transparency)
+
+**The "Garbage In, Garbage Out" Challenge:**
+
+In the current MVP implementation, `sybilScore` is a **private input** to the circuit. While the circuit correctly enforces `sybilScore >= minSybilScore`, it **does not verify the source** of `sybilScore`.
+
+**Current Trust Model:**
+```
+User → Backend calculates sybilScore → Backend generates ZK proof
+       ✅ Backend uses real data    ✅ Circuit enforces constraints
+```
+
+**Theoretical Attack Vector:**
+```
+Attacker → Downloads circuit files → Self-generates proof with fake sybilScore
+           ❌ No signature verification  ❌ Can provide arbitrary sybilScore
+```
+
+**Why This Is a Known Limitation:**
+
+This is a classic ZK engineering challenge: **"How do you prove something about external data?"**
+
+In production, there are two standard solutions:
+
+1. **Oracle Signature Verification (Industry Standard)**
+   ```circom
+   // Include oracle's signature in circuit
+   signal input oracleSignature[2]; // ECDSA signature
+   signal input oraclePublicKey[2];
+   
+   // Verify signature covers sybilScore
+   component sigVerify = ECDSAVerify();
+   sigVerify.signature <== oracleSignature;
+   sigVerify.pubKey <== oraclePublicKey;
+   sigVerify.message <== sybilScore;
+   sigVerify.out === 1; // Proof fails if signature invalid!
+   ```
+
+2. **Storage Proofs (Advanced)**
+   - Prove the data exists on-chain (e.g., via Merkle proofs)
+   - Used by projects like Axiom, Herodotus
+   - Too complex for hackathon MVP
+
+**Our MVP Decision:**
+
+For this hackathon, we chose **controlled proof generation**:
+- ✅ Backend controls proof generation
+- ✅ Real scoring data is used
+- ✅ Demonstrates core ZK privacy concepts
+- ✅ Circuit logic is production-ready
+- ⚠️ Lacks oracle signature verification
+
+**Post-Hackathon Roadmap:**
+- [ ] Implement oracle ECDSA signature verification in circuits
+- [ ] Deploy trusted oracle infrastructure
+- [ ] Consider zk-SNARK friendly signature schemes (e.g., EdDSA with Baby JubJub)
+
+**Honest Assessment:**
+
+This is a **known engineering trade-off** in the MVP. The circuit architecture is sound, but the trust assumption is "backend generates proofs honestly." For production, oracle signatures are the standard solution.
+
+**To Judges**: We're transparent about this limitation because honesty > hype. The core innovation (ZK privacy + state machine) is real. The signature verification is well-understood engineering work.
 
 ---
 
@@ -609,6 +672,94 @@ curl -X POST http://localhost:3000/api/zkp/verify-with-attestation \
 ```
 
 **Output**: `"isSimulated": false, "onChainVerified": true` ← Real cryptography + on-chain security! 🎉
+
+---
+
+## 🔒 Trust Assumptions & Security Model
+
+> **Transparency > Hype**: Here's what's secure and what relies on trust in this MVP.
+
+### What's Cryptographically Secure ✅
+
+**1. ZK Proof Privacy**
+- ✅ **Score privacy is mathematically guaranteed**
+- ✅ Verifier cannot extract exact score from proof (information-theoretic security)
+- ✅ Poseidon commitments are collision-resistant
+- ✅ Groth16 proofs are computationally sound
+
+**2. On-Chain Integrity**
+- ✅ **EAS attestations are tamper-proof** (blockchain immutability)
+- ✅ State commitments create an audit trail
+- ✅ Smart contracts execute deterministically
+
+**3. Tier Membership Verification**
+- ✅ **Proof mathematically enforces tier bounds**
+- ✅ Cannot claim Gold tier without score in [60-79]
+- ✅ Circuit constraints are always enforced
+
+### What Relies on Trust Assumptions ⚠️
+
+**1. Score Calculation (Backend)**
+- ⚠️ **Trust**: Backend calculates scores honestly from blockchain data
+- ⚠️ **Trust**: On-chain data sources (Etherscan, RPC) are not manipulated
+- 🔮 **Future**: Decentralized oracle network with multiple data sources
+
+**2. ZK Proof Generation (MVP Limitation)**
+- ⚠️ **Trust**: Proofs are generated by KarmaTrust backend, not user-side
+- ⚠️ **Why**: No oracle signature verification in MVP circuits
+- ⚠️ **Risk**: User could theoretically generate fake proofs if they had circuit files
+- 🔮 **Future**: Oracle ECDSA signature verification in circuits (see Anti-Sybil section above)
+
+**3. Sybil Defense Data**
+- ⚠️ **Trust**: `sybilScore` is a private input without signature verification
+- ⚠️ **Mitigation**: Backend generates proofs with real data
+- 🔮 **Future**: Sign sybilScore with oracle key, verify signature in circuit
+
+### Security Design Decisions
+
+| Component | Security Level | Notes |
+|-----------|---------------|-------|
+| **Score Privacy** | 🟢 Cryptographic | Information-theoretic - mathematically secure |
+| **Tier Verification** | 🟢 Cryptographic | Circuit enforces bounds - cannot be bypassed |
+| **EAS Attestations** | 🟢 On-chain | Blockchain immutability - tamper-proof |
+| **Score Calculation** | 🟡 Trust Backend | MVP limitation - production needs decentralized oracle |
+| **Proof Generation** | 🟡 Controlled | Backend-only in MVP - future: oracle signatures |
+| **Data Sources** | 🟡 Trust Etherscan | MVP limitation - production needs multiple sources |
+
+### Why These Trade-offs for MVP?
+
+**Engineering Reality:**
+1. **Oracle signatures in ZK circuits** are production-level complexity:
+   - Requires ECDSA verification in circuit (~15,000 additional constraints)
+   - OR EdDSA with Baby JubJub (new key infrastructure)
+   - Adds 3-4 weeks of development time
+
+2. **Decentralized oracle networks** require:
+   - Multiple node operators
+   - Consensus mechanisms
+   - Economic incentives
+   - Not feasible in hackathon timeframe
+
+3. **What we prioritized**:
+   - ✅ Real ZK cryptography (not simulated)
+   - ✅ Core privacy architecture
+   - ✅ Production-ready circuit logic
+   - ✅ On-chain verification infrastructure
+
+### For Judges: The Honest Assessment
+
+**What's Novel**: 
+- VCSM state machine architecture
+- ZK + EAS hybrid for privacy
+- TradFi-DeFi bridge design
+- Circuit-based tier verification
+
+**What's Standard Engineering**: 
+- Oracle signature verification (well-known solution)
+- Multi-source data aggregation (Chainlink-style)
+
+**Our Position**: 
+We built the novel parts. The trust assumptions are known engineering challenges with established solutions. We're transparent about this because **honesty > hype**.
 
 ---
 
