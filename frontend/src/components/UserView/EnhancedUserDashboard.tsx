@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditScoreData } from '../../hooks/useCredit';
 import CredentialManager from '../shared/CredentialManager';
-import ZKProofGenerator from '../shared/ZKProofGenerator';
+import ProofCard from '../shared/ProofCard';
 
 // =============================================================================
 // TYPES
@@ -144,7 +144,7 @@ export default function EnhancedUserDashboard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <ZKProofGenerator
+          <ProofCard
             wallet={wallet}
             currentTier={score.level}
             currentTierName={score.levelName}
