@@ -1,11 +1,13 @@
 /**
  * Tailwind CSS Configuration
  * 
- * Design System: Bloomberg Terminal + OKX Tech
+ * Design System: Bloomberg Terminal + OKX Tech + Bridge Theme
  * 
  * Color Philosophy:
- * - Primary (#00ff88): Trust, growth, success - used for positive indicators
- * - Accent (#ffd700): Premium, value - used for highlights and warnings
+ * - Primary (#00ff88): DeFi green - Trust, growth, success
+ * - Accent (#ffd700): Gold - Premium, value
+ * - TradFi (#4169e1): Royal blue - Traditional finance, institutional
+ * - Bridge (#ff69b4): Hot pink - Connection, translation layer
  * - Surface (#1a1a1a): Card backgrounds - subtle elevation
  * - Background (#0a0a0a): Deep black - professional, minimal
  */
@@ -20,8 +22,10 @@ export default {
     extend: {
       colors: {
         // Primary brand colors
-        primary: '#00ff88',
-        accent: '#ffd700',
+        primary: '#00ff88',      // DeFi green
+        accent: '#ffd700',       // Gold
+        tradfi: '#4169e1',       // Royal blue (TradFi)
+        bridge: '#ff69b4',       // Hot pink (Bridge layer)
         
         // Background colors
         background: '#0a0a0a',
@@ -67,6 +71,8 @@ export default {
         'glow': '0 0 20px rgba(0, 255, 136, 0.3)',
         'glow-lg': '0 0 40px rgba(0, 255, 136, 0.4)',
         'glow-accent': '0 0 20px rgba(255, 215, 0, 0.3)',
+        'glow-tradfi': '0 0 20px rgba(65, 105, 225, 0.3)',
+        'glow-bridge': '0 0 20px rgba(255, 105, 180, 0.3)',
       },
       
       animation: {
