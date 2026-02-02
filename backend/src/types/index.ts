@@ -98,6 +98,9 @@ export interface CreditScore {
   meta?: {
     dataSource: string;
     version: string;
+    zkProofHash?: string;       // Hash of ZK proof
+    stateCommitment?: string;   // State commitment hash
+    attestationId?: string;     // EAS attestation ID
   };
 }
 

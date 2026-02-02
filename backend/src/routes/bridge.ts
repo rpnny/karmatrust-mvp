@@ -12,7 +12,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { calculateCreditScore } from '../services/creditScoring.js';
+import { creditScoringService } from '../services/creditScoring.js';
 import { bridgeTranslator } from '../services/bridgeTranslator.js';
 import type { ApiResponse } from '../types/index.js';
 
@@ -40,7 +40,7 @@ router.get('/to-tradfi/:wallet', async (req: Request, res: Response) => {
     }
 
     // Calculate credit score from blockchain data
-    const creditScore = await calculateCreditScore(wallet);
+    const creditScore = await creditScoringService.calculateScore(wallet);
     
     // Translate to TradFi format
     const tradfiReport = bridgeTranslator.translateToTradFi(creditScore);
@@ -82,7 +82,7 @@ router.get('/to-defi/:wallet', async (req: Request, res: Response) => {
     }
 
     // Calculate credit score
-    const creditScore = await calculateCreditScore(wallet);
+    const creditScore = await creditScoringService.calculateScore(wallet);
     
     // Translate to DeFi format
     const defiReport = bridgeTranslator.translateToDeFi(creditScore);
@@ -124,7 +124,7 @@ router.get('/both/:wallet', async (req: Request, res: Response) => {
     }
 
     // Calculate credit score
-    const creditScore = await calculateCreditScore(wallet);
+    const creditScore = await creditScoringService.calculateScore(wallet);
     
     // Get both formats
     const both = bridgeTranslator.translateBoth(creditScore);
@@ -166,7 +166,7 @@ router.get('/compare/:wallet', async (req: Request, res: Response) => {
     }
 
     // Calculate credit score
-    const creditScore = await calculateCreditScore(wallet);
+    const creditScore = await creditScoringService.calculateScore(wallet);
     
     // Get comparison summary
     const summary = bridgeTranslator.generateComparisonSummary(creditScore);
