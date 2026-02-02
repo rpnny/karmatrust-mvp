@@ -2,6 +2,36 @@
 pragma solidity ^0.8.20;
 
 /**
+ * ============================================================================
+ *                    🏛️  CORE INFRASTRUCTURE CONTRACT  🏛️
+ * ============================================================================
+ * 
+ * This is a CORE component of KarmaTrust/DAISY credit infrastructure.
+ * Unlike TieredLending.sol (which is an example), this contract IS the product.
+ * 
+ * What This Contract Does:
+ * - Stores cryptographic commitments (state hashes) of user credit states
+ * - Provides verifiable credit tier information to ANY integrating protocol
+ * - Maintains an immutable audit trail of credit state transitions
+ * 
+ * What This Contract Does NOT Do:
+ * - Does NOT make lending decisions (that's the institution's job)
+ * - Does NOT store raw credit scores (privacy by design)
+ * - Does NOT decide collateral ratios (that's the lender's risk model)
+ * 
+ * Integration Model:
+ * ┌─────────────────────┐      ┌─────────────────────┐
+ * │  VCSMStateManager   │ ───> │  Bank/DeFi Protocol │
+ * │  (KarmaTrust)       │      │  (Customer)         │
+ * │                     │      │                     │
+ * │  - getLevel()       │      │  - Risk assessment  │
+ * │  - getState()       │      │  - Lending decision │
+ * │  - verifyProof()    │      │  - Compliance       │
+ * └─────────────────────┘      └─────────────────────┘
+ *       INFRASTRUCTURE              APPLICATION
+ * 
+ * ============================================================================
+ * 
  * @title VCSMStateManager
  * @notice On-chain state management for KarmaTrust credit states
  * 

@@ -92,6 +92,40 @@ Result: Banks + DeFi can work together
 
 ---
 
+## ⚖️ Responsibility Model: Infrastructure vs. Application
+
+> **KarmaTrust is infrastructure, NOT an application.** We provide the credit rails, institutions make the decisions.
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                    RESPONSIBILITY SEPARATION                            │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   KarmaTrust (INFRASTRUCTURE)          Institution (APPLICATION)        │
+│   ─────────────────────────            ────────────────────────         │
+│                                                                         │
+│   ✅ Credit scoring algorithm           ✅ Lending decision (yes/no)    │
+│   ✅ ZK proof generation                ✅ Collateral ratio policy      │
+│   ✅ EAS attestations                   ✅ Risk management              │
+│   ✅ State verification                 ✅ Regulatory compliance        │
+│                                                                         │
+│   ❌ NOT: Approve/reject loans          ❌ NOT: Score calculation       │
+│   ❌ NOT: Set interest rates            ❌ NOT: ZK circuit design       │
+│   ❌ NOT: Manage collateral             ❌ NOT: Attestation schema      │
+│                                                                         │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+**Analogy**: 
+- **FICO** provides credit scores → **Banks** decide who gets a loan
+- **KarmaTrust** provides credit infrastructure → **Institutions** make lending decisions
+
+**In This Repo**:
+- `VCSMStateManager.sol` = **Core Infrastructure** (the product)
+- `TieredLending.sol` = **Reference Implementation** (example of how to use us)
+
+---
+
 ## 💎 Core Innovation: VCSM (Verifiable Credit State Machine)
 
 **What makes KarmaTrust fundamentally different:**
@@ -518,13 +552,15 @@ curl -X POST http://localhost:3000/api/zkp/verify-with-attestation \
 │                                                                          │
 │  ┌─────────────────────────┐  ┌─────────────────────────┐               │
 │  │  VCSMStateManager.sol   │  │   TieredLending.sol     │               │
-│  │  - Store state hashes   │  │  - Credit-based loans   │               │
-│  │  - Level (public)       │  │  - Collateral tiers:    │               │
+│  │  🏛️ CORE INFRASTRUCTURE │  │   ⚠️ REFERENCE EXAMPLE  │               │
+│  │  - Store state hashes   │  │  - Shows integration    │               │
+│  │  - Level (public)       │  │  - Demo collateral:     │               │
 │  │  - Score hash (private) │  │    Diamond: 110%        │               │
 │  └─────────────────────────┘  │    Gold: 125%           │               │
 │                               │    Bronze: 150%         │               │
-│  ┌─────────────────────────┐  └─────────────────────────┘               │
-│  │   EAS Attestations      │                                            │
+│  ┌─────────────────────────┐  │  (Replace with your     │               │
+│  │   EAS Attestations      │  │   own lending logic!)   │               │
+│  │  🏛️ CORE INFRASTRUCTURE │  └─────────────────────────┘               │
 │  │  - On-chain credentials │                                            │
 │  │  - Publicly verifiable  │                                            │
 │  └─────────────────────────┘                                            │
@@ -688,8 +724,8 @@ karmatrust-mvp/
 │
 ├── contracts/                # Solidity + Hardhat
 │   ├── contracts/
-│   │   ├── VCSMStateManager.sol
-│   │   └── TieredLending.sol
+│   │   ├── VCSMStateManager.sol  # 🏛️ CORE: Credit state infrastructure
+│   │   └── TieredLending.sol     # ⚠️ EXAMPLE: Reference implementation only
 │   ├── scripts/deploy.ts
 │   └── test/
 │
@@ -898,8 +934,8 @@ MIT License - see [LICENSE](./LICENSE)
 | Resource | URL |
 |----------|-----|
 | GitHub | https://github.com/rpnny/karmatrust-mvp |
-| VCSMStateManager | [0x2113...E273 (Sepolia)](https://sepolia.etherscan.io/address/0x2113Dd751B588D807aA37e7D714864666d35E273) |
-| TieredLending | [0x37bA...6725 (Sepolia)](https://sepolia.etherscan.io/address/0x37bA854436157064F6d502DBA620778336116725) |
+| VCSMStateManager (Core) | [0x2113...E273 (Sepolia)](https://sepolia.etherscan.io/address/0x2113Dd751B588D807aA37e7D714864666d35E273) |
+| TieredLending (Example) | [0x37bA...6725 (Sepolia)](https://sepolia.etherscan.io/address/0x37bA854436157064F6d502DBA620778336116725) |
 | Demo Video | [Recording in Progress] |
 | EAS Attestations | [Sepolia EASScan](https://sepolia.easscan.org/) |
 

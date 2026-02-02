@@ -2,8 +2,38 @@
 pragma solidity ^0.8.20;
 
 /**
+ * ============================================================================
+ *                    ⚠️  REFERENCE IMPLEMENTATION ONLY  ⚠️
+ * ============================================================================
+ * 
+ * This contract is a DEMONSTRATION of how lending protocols can integrate
+ * with KarmaTrust/DAISY credit infrastructure. It is NOT part of the core
+ * infrastructure offering.
+ * 
+ * KarmaTrust's Core Product (Infrastructure):
+ * - VCSMStateManager.sol  → Credit state storage & verification
+ * - EAS Attestations      → On-chain credentials
+ * - ZK Proof System       → Privacy-preserving verification
+ * 
+ * This Contract (Example Application):
+ * - Shows HOW to use KarmaTrust infrastructure
+ * - Demonstrates collateral reduction based on credit tier
+ * - Should be REPLACED by institution's own lending logic in production
+ * 
+ * Analogy:
+ * - KarmaTrust = FICO (provides credit scores)
+ * - TieredLending = Example Bank (makes lending decisions)
+ * - In production: Banks/DeFi protocols write their OWN lending contracts
+ *   and only CALL our VCSMStateManager for credit verification.
+ * 
+ * RESPONSIBILITY MODEL:
+ * - KarmaTrust: Responsible for accurate credit scoring & attestations
+ * - Institution: Responsible for lending decisions, risk management, compliance
+ * 
+ * ============================================================================
+ * 
  * @title TieredLending
- * @notice Credit-tier based lending with reduced collateral requirements
+ * @notice EXAMPLE: Credit-tier based lending with reduced collateral requirements
  * 
  * @dev This contract demonstrates how credit tiers can reduce collateral requirements.
  * Higher credit tiers get better loan terms (lower collateral ratio).

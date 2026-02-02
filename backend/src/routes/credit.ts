@@ -1,9 +1,32 @@
 /**
  * Credit Scoring API Routes
  * 
+ * ============================================================================
+ *                         PRIVACY & RESPONSIBILITY MODEL
+ * ============================================================================
+ * 
+ * KarmaTrust is INFRASTRUCTURE, not an application. We provide credit data,
+ * but institutions make their own lending decisions.
+ * 
+ * Data Visibility:
+ * - "private" fields: Only visible to the user (never shared with third parties)
+ * - "public" fields: Can be shared/attested on-chain (tier, commitment)
+ * 
+ * When user calls /api/credit/score:
+ * - They see their OWN score (private to them)
+ * - When they generate ZK proof, only TIER is proven (score hidden)
+ * - When they create attestation, they CHOOSE what to reveal
+ * 
+ * Responsibility:
+ * - KarmaTrust: Accurate scoring, privacy-preserving proofs
+ * - Institution: Lending decision, risk management, compliance
+ * 
+ * ============================================================================
+ * 
  * Endpoints:
- * - GET /api/credit/score?wallet=0x...  → Calculate credit score
- * - POST /api/credit/attest             → Create EAS attestation (next commit)
+ * - GET /api/credit/score?wallet=0x...  → Calculate credit score (user's private view)
+ * - POST /api/credit/attest             → Create EAS attestation (public mode)
+ * - POST /api/credit/attest-commitment  → Create ZK-friendly attestation (privacy mode)
  * - GET /api/credit/explain/:wallet     → Get score explanation
  * 
  * Response Format:
@@ -98,16 +121,42 @@ router.get('/score', async (req: Request, res: Response) => {
     console.log(`[Credit] Score calculated in ${processingTime}ms: ${scoreResult.score} (${scoreResult.levelName})`);
 
     // Return response with FICO display value
+    // Note: This is the USER'S private view of their own data
+    // When sharing with third parties, use ZK proofs or commitment-based attestations
     return res.json({
       success: true,
       data: {
+        // Private data (user's eyes only - NOT shared with third parties)
+        privateData: {
+          score: scoreResult.score,           // Internal score 0-100
+          ficoDisplay: scoreToFICO(scoreResult.score), // FICO-style 300-850
+          factors: scoreResult.factors,       // Detailed breakdown
+        },
+        // Public data (can be shared/attested)
+        publicData: {
+          level: scoreResult.level,           // Tier number (1-5)
+          levelName: scoreResult.levelName,   // "Gold", "Silver", etc.
+          risk: scoreResult.risk,             // Risk category
+          wallet: scoreResult.wallet,
+        },
+        // For backward compatibility (deprecated - use privateData/publicData)
         ...scoreResult,
-        ficoDisplay: scoreToFICO(scoreResult.score), // For UI display only
+        ficoDisplay: scoreToFICO(scoreResult.score),
+        // Privacy notice
+        _privacyNote: 'privateData is for YOUR eyes only. Use /attest-commitment for privacy-preserving sharing.',
       },
       meta: {
         timestamp: Date.now(),
         version: '0.1.0-mvp',
         processingTimeMs: processingTime,
+        visibility: {
+          score: 'private',
+          ficoDisplay: 'private', 
+          factors: 'private',
+          level: 'public',
+          levelName: 'public',
+          risk: 'public',
+        },
       },
     });
 
