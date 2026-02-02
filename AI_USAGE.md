@@ -221,8 +221,9 @@ Human-designed algorithm + AI-generated implementation
 ## Contact & Questions
 
 If hackathon judges have questions about AI usage:
-- Email: [Your Email]
-- GitHub: https://github.com/rpnny/karmatrust-mvp
+- **Email**: 2867755637@qq.com
+- **Discord**: ronny_hz727
+- **GitHub**: https://github.com/rpnny/karmatrust-mvp
 - Happy to provide:
   - Screen recording of development process
   - Detailed walkthrough of any architectural decision

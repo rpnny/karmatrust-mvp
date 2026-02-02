@@ -368,9 +368,8 @@ Other Projects:           DAISY:
 
 ## Contact & Support
 
-- **Email**: [Your Email]
-- **Discord**: [ETHGlobal Server]
-- **Twitter**: [Your Twitter]
+- **Email**: 2867755637@qq.com
+- **Discord**: ronny_hz727
 
 ---
 

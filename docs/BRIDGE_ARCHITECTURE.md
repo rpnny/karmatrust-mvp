@@ -543,9 +543,9 @@ Not just building for DeFi. Building THE bridge.
 ## 📧 Contact
 
 For institutional partnerships and integration inquiries:
-- Email: [Your Email]
-- Documentation: https://github.com/rpnny/karmatrust-mvp
-- Demo: https://karmatrust.demo (Coming Soon)
+- **Email**: 2867755637@qq.com
+- **Discord**: ronny_hz727
+- **Documentation**: https://github.com/rpnny/karmatrust-mvp
 
 ---
 

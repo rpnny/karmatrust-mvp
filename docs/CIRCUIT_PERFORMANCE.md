@@ -349,5 +349,6 @@ Attacker **cannot** generate valid proof without meeting sybil requirements.
 ---
 
 **Prepared by**: KarmaTrust Team  
-**Contact**: [GitHub](https://github.com/rpnny/karmatrust-mvp)  
+**Contact**: 2867755637@qq.com | Discord: ronny_hz727  
+**GitHub**: https://github.com/rpnny/karmatrust-mvp  
 **License**: MIT (circuits), Proprietary (production system)

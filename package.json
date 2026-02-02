@@ -23,7 +23,7 @@
     "vcsm",
     "privacy"
   ],
-  "author": "KarmaTrust Team",
+  "author": "Ronny <2867755637@qq.com>",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
