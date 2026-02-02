@@ -188,6 +188,46 @@ export interface ApiResponse<T = unknown> {
   };
 }
 
+/**
+ * TradFi Report Format
+ * 
+ * Traditional finance-style credit report.
+ * Designed to be familiar to banks and financial institutions.
+ */
+export interface TradFiReport {
+  format: 'traditional';
+  ficoScore: number;                // 300-850 FICO-style score
+  riskRating: 'AAA' | 'AA' | 'A' | 'BBB' | 'BB' | 'B' | 'CCC';  // Bond-style rating
+  creditUtilization: number;        // Percentage (0-100)
+  accountAge: number;               // In months
+  paymentHistory: 'Excellent' | 'Good' | 'Fair' | 'Poor';  // Descriptive rating
+  derogatoriesCount: number;        // Number of negative marks
+  inquiriesLast12Months: number;    // Hard inquiry count
+  publicRecords: number;            // Liens, judgments, etc.
+  reportDate: string;               // ISO date string
+  reportId: string;                 // Unique identifier
+}
+
+/**
+ * DeFi Report Format
+ * 
+ * Decentralized finance-style credit data.
+ * Designed for on-chain protocols and Web3 native users.
+ */
+export interface DeFiReport {
+  format: 'decentralized';
+  tier: CreditLevel;                // 0-5 tier system
+  tierName: string;                 // "Gold", "Silver", etc.
+  collateralRatio: number;          // E.g., 1.25 (125%)
+  zkProofHash?: string;             // Hash of ZK proof (if generated)
+  stateCommitment?: string;         // Poseidon hash commitment
+  attestationId?: string;           // EAS attestation ID
+  contractAddress?: string;         // VCSM contract address
+  onChainVerifiable: boolean;       // Whether data is on-chain
+  lastUpdate: number;               // Unix timestamp
+  networkId: number;                // Chain ID (11155111 for Sepolia)
+}
+
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
