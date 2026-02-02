@@ -18,6 +18,7 @@ import creditRoutes from './routes/credit.js';
 import zkpRoutes from './routes/zkp.js';
 import vcsmRoutes from './routes/vcsm.js';
 import contractRoutes from './routes/contracts.js';
+import bridgeRoutes from './routes/bridge.js';
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
         zkp: '/api/zkp/*',
         vcsm: '/api/vcsm/*',
         contracts: '/api/contracts/*',
+        bridge: '/api/bridge/*',
       },
     },
   });
@@ -76,6 +78,9 @@ app.use('/api/vcsm', vcsmRoutes);
 
 // Contract interaction routes
 app.use('/api/contracts', contractRoutes);
+
+// Bridge translation routes (TradFi ↔️ DeFi)
+app.use('/api/bridge', bridgeRoutes);
 
 
 // =============================================================================
