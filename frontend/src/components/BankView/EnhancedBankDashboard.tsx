@@ -15,6 +15,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CreditScoreData } from '../../hooks/useCredit';
+import ProofVerifier from '../shared/ProofVerifier';
 
 // =============================================================================
 // TYPES
@@ -23,10 +24,6 @@ import { CreditScoreData } from '../../hooks/useCredit';
 interface EnhancedBankDashboardProps {
   score: CreditScoreData;
   wallet: string;
-  zkProofGenerated?: boolean;  // User generated proof
-  zkProofVerified?: boolean;    // Bank verified proof
-  zkProofData?: any;            // Proof data
-  onVerifyProof?: () => void;   // Verify callback
 }
 
 interface BridgeData {
@@ -58,15 +55,11 @@ interface VCSMState {
 
 export default function EnhancedBankDashboard({ 
   score, 
-  wallet,
-  zkProofGenerated = false,
-  zkProofVerified = false,
-  zkProofData,
-  onVerifyProof
+  wallet
 }: EnhancedBankDashboardProps) {
   const [bridgeData, setBridgeData] = useState<BridgeData | null>(null);
   const [loadingBridge, setLoadingBridge] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'vcsm' | 'zk'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'vcsm' | 'verify'>('overview');
 
   // Fetch bridge translation data
   useEffect(() => {
@@ -136,10 +129,10 @@ export default function EnhancedBankDashboard({
           label="VCSM"
         />
         <TabButton 
-          active={activeTab === 'zk'} 
-          onClick={() => setActiveTab('zk')}
+          active={activeTab === 'verify'} 
+          onClick={() => setActiveTab('verify')}
           icon="🔐"
-          label="ZK Proof"
+          label="Verify Proof"
         />
       </motion.div>
 
@@ -151,16 +144,13 @@ export default function EnhancedBankDashboard({
             wallet={wallet}
             bridgeData={bridgeData}
             loadingBridge={loadingBridge}
-            zkProofGenerated={zkProofGenerated}
-            zkProofVerified={zkProofVerified}
-            onVerifyProof={onVerifyProof}
           />
         )}
         {activeTab === 'vcsm' && (
           <VCSMTab history={vcsmHistory} currentLevel={score.level} />
         )}
-        {activeTab === 'zk' && (
-          <ZKTab score={score} wallet={wallet} zkProofVerified={zkProofVerified} />
+        {activeTab === 'verify' && (
+          <VerifyTab />
         )}
       </div>
     </div>
@@ -175,18 +165,12 @@ function OverviewTab({
   score, 
   wallet, 
   bridgeData, 
-  loadingBridge,
-  zkProofGenerated,
-  zkProofVerified,
-  onVerifyProof
+  loadingBridge
 }: {
   score: CreditScoreData;
   wallet: string;
   bridgeData: BridgeData | null;
   loadingBridge: boolean;
-  zkProofGenerated: boolean;
-  zkProofVerified: boolean;
-  onVerifyProof?: () => void;
 }) {
   return (
     <div className="space-y-6">
@@ -318,58 +302,23 @@ function OverviewTab({
         </div>
       </motion.div>
 
-      {/* ZK Proof Status & Verification */}
+      {/* Proof Verification Info */}
       <motion.div
-        className={`rounded-xl p-4 border ${
-          zkProofVerified 
-            ? 'bg-green-900/20 border-green-800'
-            : zkProofGenerated
-            ? 'bg-purple-900/20 border-purple-700'
-            : 'bg-gray-900/20 border-gray-700'
-        }`}
+        className="bg-purple-900/20 border border-purple-700 rounded-xl p-4"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">
-                {zkProofVerified ? '✅' : zkProofGenerated ? '📥' : '⏳'}
-              </span>
-              <div>
-                <div className="text-sm font-semibold text-white">
-                  {zkProofVerified 
-                    ? 'ZK Proof Verified ✓'
-                    : zkProofGenerated
-                    ? 'Proof Received - Awaiting Verification'
-                    : 'No Proof Submitted'
-                  }
-                </div>
-                <div className="text-xs text-gray-400">
-                  {zkProofVerified 
-                    ? 'Tier membership cryptographically proven'
-                    : zkProofGenerated
-                    ? 'User submitted proof. Click to verify.'
-                    : 'User needs to generate proof first'
-                  }
-                </div>
-              </div>
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🔐</span>
+          <div>
+            <div className="text-sm font-semibold text-white">
+              ZK Proof Verification
+            </div>
+            <div className="text-xs text-gray-400">
+              Click "Verify Proof" tab to verify user's ZK proof
             </div>
           </div>
-
-          {/* Verify Button */}
-          {zkProofGenerated && !zkProofVerified && (
-            <button
-              onClick={onVerifyProof}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg font-semibold transition flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>Verify ZK Proof</span>
-            </button>
-          )}
         </div>
       </motion.div>
     </div>
@@ -445,11 +394,7 @@ function VCSMTab({ history, currentLevel }: { history: VCSMState[]; currentLevel
   );
 }
 
-function ZKTab({ score, wallet, zkProofVerified }: { 
-  score: CreditScoreData; 
-  wallet: string;
-  zkProofVerified: boolean;
-}) {
+function VerifyTab() {
   return (
     <motion.div
       className="space-y-6"
@@ -459,56 +404,14 @@ function ZKTab({ score, wallet, zkProofVerified }: {
       <div className="bg-surface/50 rounded-xl p-6 border border-gray-800">
         <div className="flex items-center gap-2 mb-4">
           <span className="text-2xl">🔐</span>
-          <h3 className="text-white font-semibold">Zero-Knowledge Proof</h3>
+          <h3 className="text-white font-semibold">Verify ZK Proof</h3>
         </div>
+        <p className="text-sm text-gray-400 mb-6">
+          Paste the ZK proof from the user to verify their tier membership cryptographically.
+        </p>
 
-        {zkProofVerified ? (
-          <div className="space-y-4">
-            <div className="bg-green-900/20 border border-green-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-400 text-lg">✓</span>
-                <span className="text-green-400 font-semibold">Proof Verified</span>
-              </div>
-              <p className="text-sm text-gray-400">
-                Tier membership cryptographically proven using Groth16 ZK-SNARK
-              </p>
-            </div>
-
-            <div className="bg-surface/30 rounded-lg p-4 space-y-3 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Proof System</span>
-                <span className="text-white font-mono">Groth16</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Circuit</span>
-                <span className="text-white font-mono">tier_membership.circom</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Hash Function</span>
-                <span className="text-white font-mono">Poseidon</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Proven Tier</span>
-                <span className="text-primary font-semibold">{score.levelName}</span>
-              </div>
-            </div>
-
-            <div className="bg-surface/30 rounded-lg p-4">
-              <div className="text-xs text-gray-500 mb-2">Proof Hash</div>
-              <div className="font-mono text-xs text-white break-all">
-                0x{Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-6 text-center">
-            <span className="text-4xl mb-4 block">⏳</span>
-            <p className="text-yellow-400 font-semibold mb-2">No Proof Submitted Yet</p>
-            <p className="text-sm text-gray-500">
-              User needs to generate and submit ZK proof to reveal tier information
-            </p>
-          </div>
-        )}
+        {/* REAL ProofVerifier Component with API calls */}
+        <ProofVerifier />
 
         <div className="mt-6 pt-4 border-t border-gray-800">
           <p className="text-xs text-gray-500">

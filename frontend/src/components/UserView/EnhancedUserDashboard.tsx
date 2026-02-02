@@ -1,13 +1,10 @@
 /**
  * Enhanced User Dashboard
  * 
- * User's view of their credit profile with ZK proof generation capability.
- * 
- * Features:
- * - Full credit data visibility
- * - Generate ZK Proof button
- * - EAS attestation display
- * - Bridge format preview
+ * User's view of their credit profile with REAL functionality:
+ * - Dual-Mode Credentials (Public vs Privacy)
+ * - Real EAS attestation generation
+ * - Real ZK proof generation via API
  * 
  * Design: Web3 dark theme, unified with Bank View
  */
@@ -15,6 +12,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditScoreData } from '../../hooks/useCredit';
+import CredentialManager from '../shared/CredentialManager';
 
 // =============================================================================
 // TYPES
@@ -23,8 +21,6 @@ import { CreditScoreData } from '../../hooks/useCredit';
 interface EnhancedUserDashboardProps {
   score: CreditScoreData;
   wallet: string;
-  onGenerateProof?: (proofData: any) => void;
-  zkProofGenerated?: boolean;
 }
 
 // =============================================================================
@@ -33,33 +29,8 @@ interface EnhancedUserDashboardProps {
 
 export default function EnhancedUserDashboard({ 
   score, 
-  wallet,
-  onGenerateProof,
-  zkProofGenerated = false
+  wallet
 }: EnhancedUserDashboardProps) {
-  const [generating, setGenerating] = useState(false);
-  const [showProofDetails, setShowProofDetails] = useState(false);
-
-  const handleGenerateProof = async () => {
-    setGenerating(true);
-    
-    // Simulate ZK proof generation (in real app, call snarkjs)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const mockProofData = {
-      proof: {
-        pi_a: ['0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')],
-        pi_b: [['0x...', '0x...'], ['0x...', '0x...']],
-        pi_c: ['0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')],
-      },
-      publicSignals: [score.level],
-      timestamp: Date.now(),
-    };
-    
-    onGenerateProof?.(mockProofData);
-    setGenerating(false);
-    setShowProofDetails(true);
-  };
 
   return (
     <div className="h-full flex flex-col">
@@ -151,92 +122,19 @@ export default function EnhancedUserDashboard({
           </div>
         </motion.div>
 
-        {/* ZK Proof Generation */}
+        {/* Dual-Mode Credential Manager - REAL FUNCTIONALITY */}
         <motion.div
-          className={`rounded-2xl p-6 border-2 ${
-            zkProofGenerated 
-              ? 'bg-green-900/20 border-green-700' 
-              : 'bg-purple-900/20 border-purple-700'
-          }`}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <div className="flex items-start gap-4 mb-4">
-            <span className="text-3xl">{zkProofGenerated ? '✅' : '🔐'}</span>
-            <div className="flex-1">
-              <h3 className="text-white font-semibold mb-1">
-                Zero-Knowledge Proof
-              </h3>
-              <p className="text-sm text-gray-400">
-                {zkProofGenerated 
-                  ? 'Proof generated! Banks can verify your tier without seeing your data.'
-                  : 'Generate a cryptographic proof to share your tier privately with banks.'}
-              </p>
-            </div>
-          </div>
-
-          {!zkProofGenerated ? (
-            <button
-              onClick={handleGenerateProof}
-              disabled={generating}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2"
-            >
-              {generating ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Generating Proof...</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <span>Generate ZK Proof</span>
-                </>
-              )}
-            </button>
-          ) : (
-            <div className="space-y-3">
-              <div className="bg-surface/50 rounded-lg p-3 text-xs space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Proof System</span>
-                  <span className="text-white font-mono">Groth16</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Circuit</span>
-                  <span className="text-white font-mono">tier_membership</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Proven Tier</span>
-                  <span className="text-primary font-semibold">{score.levelName}</span>
-                </div>
-              </div>
-              
-              <button
-                onClick={() => setShowProofDetails(!showProofDetails)}
-                className="w-full text-sm text-gray-400 hover:text-white transition"
-              >
-                {showProofDetails ? '▼ Hide' : '▶ Show'} Proof Details
-              </button>
-
-              <AnimatePresence>
-                {showProofDetails && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="bg-black/50 rounded-lg p-3 overflow-hidden"
-                  >
-                    <div className="text-xs font-mono text-gray-400 break-all">
-                      <div className="mb-2 text-gray-500">Proof Hash:</div>
-                      0x{Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
+          <CredentialManager
+            wallet={wallet}
+            score={score.score}
+            ficoDisplay={score.ficoDisplay}
+            level={score.level}
+            levelName={score.levelName}
+          />
         </motion.div>
 
         {/* EAS Attestation */}

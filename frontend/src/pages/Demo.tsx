@@ -49,11 +49,6 @@ export default function Demo() {
   // State for wallet input
   const [inputWallet, setInputWallet] = useState(urlWallet || '');
   const [activeWallet, setActiveWallet] = useState(urlWallet || '');
-  
-  // State for ZK proof workflow
-  const [zkProofGenerated, setZkProofGenerated] = useState(false); // User generated proof
-  const [zkProofData, setZkProofData] = useState<any>(null); // Proof data
-  const [zkProofVerified, setZkProofVerified] = useState(false); // Bank verified proof
 
   // Fetch credit score
   const { score, loading, error, refetch } = useCredit(activeWallet);
@@ -63,10 +58,6 @@ export default function Demo() {
     e.preventDefault();
     if (inputWallet && /^0x[a-fA-F0-9]{40}$/.test(inputWallet)) {
       setActiveWallet(inputWallet);
-      // Reset proof states when changing wallet
-      setZkProofGenerated(false);
-      setZkProofData(null);
-      setZkProofVerified(false);
       navigate(`/demo/${inputWallet}`, { replace: true });
     }
   };
@@ -75,25 +66,7 @@ export default function Demo() {
   const handleExampleClick = (address: string) => {
     setInputWallet(address);
     setActiveWallet(address);
-    // Reset proof states when changing wallet
-    setZkProofGenerated(false);
-    setZkProofData(null);
-    setZkProofVerified(false);
     navigate(`/demo/${address}`, { replace: true });
-  };
-
-  // Handle proof generation from User View
-  const handleGenerateProof = (proofData: any) => {
-    setZkProofData(proofData);
-    setZkProofGenerated(true);
-    setZkProofVerified(false); // Needs verification by bank
-  };
-
-  // Handle proof verification from Bank View
-  const handleVerifyProof = () => {
-    if (zkProofData) {
-      setZkProofVerified(true);
-    }
   };
 
   return (
@@ -227,8 +200,6 @@ export default function Demo() {
                 <EnhancedUserDashboard 
                   score={score} 
                   wallet={activeWallet}
-                  onGenerateProof={handleGenerateProof}
-                  zkProofGenerated={zkProofGenerated}
                 />
               </div>
 
@@ -244,92 +215,28 @@ export default function Demo() {
                 <EnhancedBankDashboard 
                   score={score} 
                   wallet={activeWallet}
-                  zkProofGenerated={zkProofGenerated}
-                  zkProofVerified={zkProofVerified}
-                  zkProofData={zkProofData}
-                  onVerifyProof={handleVerifyProof}
                 />
               </div>
             </div>
 
-            {/* ZK Proof Workflow Status */}
-            <motion.div 
-              className={`mt-6 rounded-xl p-6 border ${
-                zkProofVerified 
-                  ? 'bg-green-900/20 border-green-700'
-                  : zkProofGenerated
-                  ? 'bg-yellow-900/20 border-yellow-700'
-                  : 'bg-gray-900/20 border-gray-700'
-              }`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <span className="text-3xl">
-                    {zkProofVerified ? '✅' : zkProofGenerated ? '📤' : '🔒'}
-                  </span>
-                  <div>
-                    <h3 className="text-white font-semibold mb-1">
-                      {zkProofVerified 
-                        ? 'ZK Proof Verified ✓'
-                        : zkProofGenerated
-                        ? 'Proof Generated - Ready for Verification'
-                        : 'No Proof Generated Yet'
-                      }
-                    </h3>
-                    <p className="text-gray-400 text-sm">
-                      {zkProofVerified 
-                        ? 'Bank has verified your tier cryptographically. Full access granted.'
-                        : zkProofGenerated
-                        ? 'User generated proof. Bank can now verify without seeing raw data.'
-                        : 'User needs to generate a ZK proof first (left side).'
-                      }
-                    </p>
-                  </div>
-                </div>
-                {zkProofGenerated && !zkProofVerified && (
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500 mb-2">
-                      👉 Click "Verify Proof" in Bank View
-                    </div>
-                    <div className="text-2xl animate-bounce">
-                      →
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
 
-            {/* Privacy Explanation Banner */}
+            {/* Feature Explanation Banner */}
             <motion.div 
               className="mt-6 bg-gradient-to-r from-primary/10 via-surface to-accent/10 rounded-xl p-6 border border-gray-800"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <span className="text-3xl">🔐</span>
-                  <div>
-                    <p className="text-white font-medium">Zero-Knowledge Privacy in Action</p>
-                    <p className="text-gray-400 text-sm">
-                      Same user, different views. Banks verify claims without seeing underlying data.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{score.ficoDisplay}</p>
-                    <p className="text-xs text-gray-500">User sees</p>
-                  </div>
-                  <div className="text-gray-600">→</div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-accent">🔒</p>
-                    <p className="text-xs text-gray-500">Bank sees</p>
-                  </div>
-                </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  🏆 Complete Tech Stack Demo
+                </h3>
+                <p className="text-gray-400 max-w-3xl mx-auto">
+                  <span className="text-bridge font-semibold">Bridge:</span> TradFi ↔️ DeFi format translation • 
+                  <span className="text-primary font-semibold"> VCSM:</span> State machine evolution • 
+                  <span className="text-purple-400 font-semibold"> ZK:</span> Privacy-preserving proofs • 
+                  <span className="text-accent font-semibold"> EAS:</span> On-chain attestations
+                </p>
               </div>
             </motion.div>
           </motion.div>
