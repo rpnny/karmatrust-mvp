@@ -461,13 +461,22 @@ curl -X POST http://localhost:3000/api/zkp/generate \
   -H "Content-Type: application/json" \
   -d '{"wallet": "0x8103ac5D4a8C01Be2181AF080794411376C7f61c"}'
 
-# Verify the proof (uses actual snarkjs verification)
+# Verify the proof (basic verification - checks math only)
 curl -X POST http://localhost:3000/api/zkp/verify \
   -H "Content-Type: application/json" \
   -d '{"proof": {...}, "publicSignals": [...]}'
+
+# For Privacy Mode: Verify proof AND check on-chain commitment (SECURE)
+curl -X POST http://localhost:3000/api/zkp/verify-with-attestation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "proof": {...},
+    "publicSignals": [...],
+    "attestationId": "0x..."
+  }'
 ```
 
-**Output**: `"isSimulated": false` ← Real cryptography! 🎉
+**Output**: `"isSimulated": false, "onChainVerified": true` ← Real cryptography + on-chain security! 🎉
 
 ---
 
@@ -634,11 +643,19 @@ Body: { "userId": "0x...", "ruleId": "UPGRADE_SILVER_TO_GOLD", "newScore": 65 }
 ```bash
 # Generate tier membership proof
 POST /api/zkp/generate
-Body: { "score": 75, "targetTier": 3 }
+Body: { "wallet": "0x...", "salt": "0x..." (optional), "commitment": "0x..." (optional) }
 
-# Verify proof
+# Verify proof (basic - checks mathematics only)
 POST /api/zkp/verify
 Body: { "proof": {...}, "publicSignals": [...] }
+
+# Verify proof with on-chain attestation (secure - for Privacy Mode)
+POST /api/zkp/verify-with-attestation
+Body: { 
+  "proof": {...}, 
+  "publicSignals": [...],
+  "attestationId": "0x..."  # EAS attestation UID
+}
 ```
 
 ---
