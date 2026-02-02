@@ -787,9 +787,12 @@ This is a hackathon MVP. For production:
 
 ---
 
-## 🤝 Team
+## 🤝 Team & Contact
 
-Built with ❤️ for ETHGlobal by Ronny
+**Built with ❤️ for ETHGlobal by Ronny**
+
+📧 **Email**: 2867755637@qq.com  
+💬 **Discord**: ronny_hz727
 
 ---
 
