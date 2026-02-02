@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditScoreData } from '../../hooks/useCredit';
 import CredentialManager from '../shared/CredentialManager';
+import ZKProofGenerator from '../shared/ZKProofGenerator';
 
 // =============================================================================
 // TYPES
@@ -122,7 +123,7 @@ export default function EnhancedUserDashboard({
           </div>
         </motion.div>
 
-        {/* Dual-Mode Credential Manager - REAL FUNCTIONALITY */}
+        {/* Dual-Mode Credential Manager */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -137,12 +138,25 @@ export default function EnhancedUserDashboard({
           />
         </motion.div>
 
+        {/* ZK Proof Generator - INDEPENDENT SECTION */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <ZKProofGenerator
+            wallet={wallet}
+            currentTier={score.level}
+            currentTierName={score.levelName}
+          />
+        </motion.div>
+
         {/* EAS Attestation */}
         <motion.div
           className="bg-surface/50 rounded-xl p-4 border border-gray-800"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.6 }}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -177,7 +191,7 @@ export default function EnhancedUserDashboard({
           className="bg-blue-900/20 border border-blue-800 rounded-xl p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
         >
           <p className="text-sm text-gray-300">
             💡 <span className="text-white font-medium">Privacy Tip:</span> Generate a ZK proof to prove your credit tier to banks without revealing your exact score or transaction history.
