@@ -41,6 +41,7 @@ const FEATURES = [
 export default function Home() {
   const [wallet, setWallet] = useState('');
   const [error, setError] = useState('');
+  const [demoMode, setDemoMode] = useState<'dual' | 'bridge'>('bridge'); // Default to bridge (featured)
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,7 +59,9 @@ export default function Home() {
     }
 
     setError('');
-    navigate(`/demo/${wallet}`);
+    // Navigate to selected demo mode
+    const path = demoMode === 'bridge' ? `/bridge/${wallet}` : `/demo/${wallet}`;
+    navigate(path);
   };
 
   return (
@@ -96,11 +99,37 @@ export default function Home() {
             <span className="text-white">Trust</span>
           </h1>
           <p className="text-xl text-gray-400 font-mono">
-            On-Chain Credit Infrastructure
+            The DeFi-TradFi Bridge
           </p>
           <p className="text-sm text-gray-600 mt-2">
-            Enterprise Credit Scoring for Financial Institutions
+            Connecting Traditional Finance and Decentralized Finance
           </p>
+        </motion.div>
+
+        {/* Demo Mode Selector */}
+        <motion.div
+          className="mb-8 flex flex-col sm:flex-row gap-4 w-full max-w-xl"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+        >
+          <DemoModeButton
+            title="Dual View Demo"
+            description="User vs Bank"
+            icon="👥"
+            color="primary"
+            onClick={() => setDemoMode('dual')}
+            active={demoMode === 'dual'}
+          />
+          <DemoModeButton
+            title="Bridge Demo"
+            description="TradFi ↔️ DeFi"
+            icon="🌉"
+            color="bridge"
+            onClick={() => setDemoMode('bridge')}
+            active={demoMode === 'bridge'}
+            featured
+          />
         </motion.div>
 
         {/* Wallet Input Card */}
@@ -147,7 +176,10 @@ export default function Home() {
               {EXAMPLE_WALLETS.map((w) => (
                 <button
                   key={w.name}
-                  onClick={() => navigate(`/demo/${w.address}`)}
+                  onClick={() => {
+                    const path = demoMode === 'bridge' ? `/bridge/${w.address}` : `/demo/${w.address}`;
+                    navigate(path);
+                  }}
                   className="flex items-center gap-1.5 px-4 py-2 bg-surface rounded-lg text-sm text-gray-300 hover:text-primary hover:border-primary border border-gray-700 transition"
                 >
                   <span>{w.icon}</span>
@@ -206,5 +238,54 @@ export default function Home() {
         <p>ETHGlobal Hackathon 2026 • MIT License</p>
       </footer>
     </div>
+  );
+}
+
+// =============================================================================
+// SUB-COMPONENTS
+// =============================================================================
+
+function DemoModeButton({ 
+  title, 
+  description, 
+  icon, 
+  color, 
+  onClick, 
+  active,
+  featured = false 
+}: {
+  title: string;
+  description: string;
+  icon: string;
+  color: 'primary' | 'bridge';
+  onClick: () => void;
+  active: boolean;
+  featured?: boolean;
+}) {
+  const colorClasses = {
+    primary: 'border-primary bg-primary/10 text-primary',
+    bridge: 'border-bridge bg-bridge/10 text-bridge',
+  };
+
+  const activeClasses = active ? colorClasses[color] : 'border-gray-700 bg-surface/50 text-gray-400';
+
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 relative border-2 rounded-xl p-4 transition-all hover:scale-[1.02] ${activeClasses}`}
+    >
+      {featured && !active && (
+        <span className="absolute -top-2 -right-2 bg-bridge text-white text-xs px-2 py-0.5 rounded-full">
+          NEW
+        </span>
+      )}
+      <div className="flex items-center gap-3">
+        <span className="text-2xl">{icon}</span>
+        <div className="text-left">
+          <div className="font-semibold">{title}</div>
+          <div className="text-xs opacity-75">{description}</div>
+        </div>
+      </div>
+    </button>
   );
 }
