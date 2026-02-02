@@ -202,7 +202,7 @@ User → KarmaTrust (VCSM + ZK Proofs) → Bank/DeFi (lending decisions)
 - ❌ Want blockchain transparency but need proven frameworks
 
 **DeFi needs institutional capital:**
-- ❌ Over-collateralization locks capital (150%+ required)
+- ❌ No way to differentiate creditworthy users from risky ones
 - ❌ No credit standard that TradFi recognizes
 - ❌ Can't attract institutional investors
 - ❌ Privacy concerns with full wallet exposure
@@ -212,7 +212,7 @@ User → KarmaTrust (VCSM + ZK Proofs) → Bank/DeFi (lending decisions)
 | Problem | TradFi Pain | DeFi Pain | Impact |
 |---------|------------|-----------|--------|
 | **No Common Language** | Don't understand "on-chain tiers" | TradFi doesn't trust novel metrics | Market fragmentation |
-| **Missing Standards** | Need FICO-style (300-850) | Need undercollateralized loans | Capital inefficiency |
+| **Missing Standards** | Need FICO-style (300-850) | Need credit-based risk assessment | Capital inefficiency |
 | **Privacy Gap** | Compliance requires KYC | Users want anonymity | Trust barrier |
 | **No Bridge** | Can't safely enter DeFi | Can't access TradFi capital | $100B+ opportunity lost |
 
@@ -242,7 +242,7 @@ Needs: PDF Report            Provides:               Needs: ZK Proof
 **Value for DeFi:**
 - ✅ Get institutional credibility through TradFi standards
 - ✅ Attract capital from traditional institutions
-- ✅ Enable undercollateralized lending
+- ✅ Enable credit-based lending decisions
 - ✅ Privacy-preserving ZK proofs
 
 **The Bridge Works Both Ways**: Banks understand FICO. DeFi understands tiers. DAISY speaks both languages.
@@ -301,7 +301,7 @@ This is not a bug—it's intentional design. Different users have different need
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                                                                          │
-│   User: "I want to prove I'm creditworthy for a lower collateral loan"   │
+│   User: "I want to prove my creditworthiness without revealing details" │
 │                                                                          │
 │   KarmaTrust: Analyzes 8 on-chain factors → Score: 762 (Gold Tier)       │
 │                                                                          │
@@ -310,8 +310,8 @@ This is not a bug—it's intentional design. Different users have different need
 │   KarmaTrust: Generates ZK proof → "User is ≥Gold tier"                  │
 │               (Bank knows tier, NOT exact score!)                        │
 │                                                                          │
-│   Bank: Verifies proof → Approves 125% collateral (vs standard 150%)     │
-│         "I know they're Gold+, that's all I need!"                       │
+│   Bank: Verifies proof → Makes their own lending decision                │
+│         "They're Gold tier. I'll apply our Gold tier policy."            │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -597,22 +597,30 @@ FICO Score (300-850) = 300 + (Internal Score × 5.5)
 
 ### Credit Tiers
 
-| Internal | FICO | Tier | Collateral | Sybil Requirement |
-|----------|------|------|------------|-------------------|
-| 90-100 | 795-850 | 💎 Diamond | 110% | 70+ sybil score |
-| 80-89 | 740-794 | 🏆 Platinum | 115% | 50+ sybil score |
-| 60-79 | 630-739 | 🥇 Gold | 125% | 35+ sybil score |
-| 40-59 | 520-629 | 🥈 Silver | 140% | 20+ sybil score |
-| 0-39 | 300-519 | 🥉 Bronze | 150% | None |
+**What KarmaTrust Provides:**
 
-**How Integrators Can Use This**:
+| Internal Score | FICO Equivalent | Tier | Description |
+|----------------|-----------------|------|-------------|
+| 90-100 | 795-850 | 💎 Diamond | Exceptional creditworthiness |
+| 80-89 | 740-794 | 🏆 Platinum | Excellent credit history |
+| 60-79 | 630-739 | 🥇 Gold | Good credit standing |
+| 40-59 | 520-629 | 🥈 Silver | Fair credit profile |
+| 0-39 | 300-519 | 🥉 Bronze | Building credit |
 
-Lending protocols that integrate with KarmaTrust can adjust their collateral requirements based on tiers:
-- Example: Diamond tier users might need 110% collateral
-- Example: Bronze tier users might need 150% collateral  
-- **Potential savings: 27% less capital locked for high-credit users**
+**How Integrators Use This:**
 
-> 💡 **Note**: KarmaTrust provides the tier data. **You** decide the collateral ratios.  
+Banks and DeFi protocols call `VCSMStateManager.getLevel(user)` to get the tier, then apply their own lending policies:
+
+```solidity
+// Integrator's code (NOT KarmaTrust)
+uint8 tier = vcsmStateManager.getLevel(borrower);
+
+if (tier >= 3) {  // Gold or better
+    // YOUR decision: better terms, lower collateral, etc.
+}
+```
+
+> 💡 **We provide the tier. You decide what it means for your business.**  
 > See `contracts/examples/TieredLending.sol` for a reference implementation.
 
 ---
@@ -837,7 +845,7 @@ This is a hackathon MVP. For production:
 - 🏢 **Family Offices** - High net worth seeking DeFi yields with TradFi risk assessment
 
 ### DeFi Customers (Need Institutional Standards):
-- ⛓️ **Lending Protocols** - Aave, Compound enabling undercollateralized loans
+- ⛓️ **Lending Protocols** - Aave, Compound building credit-based lending
 - 🦄 **DeFi Platforms** - Need credit scores institutional investors trust
 - 🎮 **GameFi / Metaverse** - In-game credit systems with real-world backing
 - 💳 **Crypto Cards** - Credit limits based on verifiable on-chain history

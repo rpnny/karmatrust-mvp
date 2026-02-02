@@ -10,7 +10,7 @@ KarmaTrust is not just a DeFi credit system. It's not just a TradFi solution. **
 
 Traditional banks and DeFi protocols speak different languages:
 - **TradFi speaks**: FICO scores (300-850), bond ratings (AAA/BBB), credit reports
-- **DeFi speaks**: Tiers (Gold/Silver), collateral ratios (125%), ZK proofs
+- **DeFi speaks**: Tiers (Gold/Silver), on-chain verification, ZK proofs
 
 **DAISY translates between both** - enabling institutions from either side to work together.
 
@@ -132,11 +132,11 @@ Derogatory Marks: 0
 **Challenge**: JPMorgan wants to offer crypto-backed loans but doesn't trust DeFi credit scores.
 
 **DAISY Solution**:
-1. User (Alice) has Gold tier in DeFi
+1. User (Alice) has Gold tier in DeFi (from KarmaTrust VCSM)
 2. DAISY translates: Gold = FICO 685 equivalent
-3. JPMorgan's risk model: FICO 685 = approve with 130% collateral
-4. DeFi contract enforces: Gold tier requires 125% collateral
-5. **Result**: JPMorgan safely lends using familiar metrics, Alice gets better rates
+3. JPMorgan's risk model: FICO 685 = approve with their Gold tier policy
+4. DeFi contract enforces: Gold tier qualifies for their premium terms
+5. **Result**: JPMorgan safely lends using familiar metrics, Alice gets tier-based benefits
 
 ---
 
@@ -189,11 +189,11 @@ class BridgeTranslator {
   // For DeFi customers
   translateToDeFi(creditScore: CreditScore): DeFiReport {
     return {
-      tier: Gold,                       // Bronze → Diamond
-      collateralRatio: 1.25,            // 125%
-      zkProofHash: "0x...",             // Privacy proof
-      stateCommitment: "0x...",         // VCSM hash
-      // ... more DeFi metrics
+      tier: Gold,                       // Bronze → Diamond (from VCSM)
+      zkProofCapability: true,          // Can generate ZK proof
+      stateCommitment: "0x...",         // VCSM state hash
+      easAttestationId: "0x...",        // EAS UID
+      // Note: Integrator defines their own policies based on tier
     };
   }
 }
@@ -226,13 +226,15 @@ GET /api/bridge/tier-to-fico/:tier
 
 ### FICO to Tier Mapping
 
-| FICO Range | Internal Score | Tier | Collateral | TradFi Rating |
-|------------|----------------|------|------------|---------------|
-| 795-850 | 90-100 | 💎 Diamond | 110% | AAA |
-| 740-794 | 80-89 | 🏆 Platinum | 115% | AA |
-| 630-739 | 60-79 | 🥇 Gold | 125% | A |
-| 520-629 | 40-59 | 🥈 Silver | 140% | BBB |
-| 300-519 | 0-39 | 🥉 Bronze | 150% | BB/B |
+| FICO Range | Internal Score | Tier | TradFi Rating | Description |
+|------------|----------------|------|---------------|-------------|
+| 795-850 | 90-100 | 💎 Diamond | AAA | Exceptional |
+| 740-794 | 80-89 | 🏆 Platinum | AA | Excellent |
+| 630-739 | 60-79 | 🥇 Gold | A | Good |
+| 520-629 | 40-59 | 🥈 Silver | BBB | Fair |
+| 300-519 | 0-39 | 🥉 Bronze | BB/B | Building |
+
+> 💡 **Note**: KarmaTrust provides the tier and rating mapping. Integrators define their own lending parameters.
 
 ### Risk Rating Conversion
 
@@ -341,7 +343,7 @@ Bank/Protocol Only Sees:
 
 TradFi Report:              DeFi Report:
   FICO: 647 (mapped)          Tier: Gold
-  Rating: BBB                 Ratio: 125%
+  Rating: BBB                 Commitment: 0xabc...
   History: Good               Proof: Verified ✓
 ```
 
@@ -363,7 +365,7 @@ TradFi Report:              DeFi Report:
 │ Format       │  Translation │  Format      │
 │              │              │              │
 │ FICO: 647    │  Internal:63 │  Tier: Gold  │
-│ Rating: BBB  │  Formula:    │  Ratio: 125% │
+│ Rating: BBB  │  Formula:    │  ZK Ready: ✓ │
 │ PDF style    │  FICO=300+   │  Dark theme  │
 │ White BG     │  (x*5.5)     │  Neon green  │
 └──────────────┴──────────────┴──────────────┘

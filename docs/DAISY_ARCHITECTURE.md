@@ -240,12 +240,16 @@ const isValid = await verifyZKProof(proof, publicSignals);
 > 💡 **Note**: This is YOUR code, not KarmaTrust's. We provide the tier data via VCSMStateManager.
 
 ```javascript
-// Example: Your lending protocol adjusts collateral based on KarmaTrust tier
-const collateralRatio = level >= CreditLevel.Gold ? 1.25 : 1.50;
-// Gold tier users: 125% collateral
-// Others: 150% collateral
+// Example: Your lending protocol applies its own policy based on tier
+if (level >= CreditLevel.Gold) {
+    // Apply YOUR Gold tier policy (better terms, etc.)
+    applyPremiumTierPolicy(user);
+} else {
+    // Apply YOUR standard policy
+    applyStandardTierPolicy(user);
+}
 
-// See contracts/examples/TieredLending.sol for reference implementation
+// See contracts/examples/TieredLending.sol for a full reference implementation
 ```
 
 ### DAISY SDK (Coming Soon)
