@@ -34,6 +34,12 @@ interface PrivacyAttestation {
   txHash?: string;
 }
 
+interface ZKProofData {
+  proof: any;
+  publicSignals: number[];
+  proofString: string;
+}
+
 interface CredentialManagerProps {
   wallet: string;
   score: number;
@@ -62,6 +68,8 @@ export default function CredentialManager({
   // Attestation results
   const [publicAttestation, setPublicAttestation] = useState<PublicAttestation | null>(null);
   const [privacyAttestation, setPrivacyAttestation] = useState<PrivacyAttestation | null>(null);
+  const [zkProof, setZkProof] = useState<ZKProofData | null>(null);
+  const [generatingProof, setGeneratingProof] = useState(false);
 
   /**
    * Create public attestation (plaintext score)
@@ -133,11 +141,49 @@ export default function CredentialManager({
   };
 
   /**
+   * Generate ZK Proof (after privacy attestation created)
+   */
+  const generateZKProof = async () => {
+    if (!privacyAttestation) return;
+
+    setGeneratingProof(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE}/zkp/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          wallet,
+          minTier: level  // Current tier
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setZkProof({
+          proof: data.data.proof,
+          publicSignals: data.data.publicSignals,
+          proofString: data.data.proofString,
+        });
+      } else {
+        setError(data.error || 'Failed to generate ZK proof');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Network error');
+    } finally {
+      setGeneratingProof(false);
+    }
+  };
+
+  /**
    * Handle mode selection and credential creation
    */
   const handleModeSelect = async (mode: CredentialMode) => {
     setSelectedMode(mode);
     setError(null);
+    setZkProof(null); // Reset proof when changing mode
 
     if (mode === 'public') {
       await createPublicAttestation();
@@ -427,8 +473,75 @@ export default function CredentialManager({
                 >
                   View on EASScan ↗
                 </a>
+
+                {/* Generate ZK Proof Button */}
+                {!zkProof && (
+                  <button
+                    onClick={generateZKProof}
+                    disabled={generatingProof}
+                    className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 mt-4"
+                  >
+                    {generatingProof ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Generating ZK Proof...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span>🔐 Generate ZK Proof</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* ZK Proof Result (if generated) */}
+            {zkProof && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-6 bg-green-900/20 border border-green-800 rounded-lg"
+              >
+                <div className="flex items-start gap-3 mb-4">
+                  <span className="text-3xl">✅</span>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white mb-1">ZK Proof Generated!</h4>
+                    <p className="text-sm text-gray-400">
+                      Copy this proof and share it with banks for verification
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <p className="text-gray-500 mb-2">Proof String (Copy & Share):</p>
+                    <div className="bg-black/50 rounded-lg p-3 max-h-32 overflow-y-auto">
+                      <p className="font-mono text-xs text-white break-all">
+                        {zkProof.proofString}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(zkProof.proofString);
+                      }}
+                      className="mt-2 w-full text-center bg-green-800 text-green-100 py-2 rounded hover:bg-green-700 transition font-medium"
+                    >
+                      📋 Copy Proof
+                    </button>
+                  </div>
+
+                  <div className="p-3 bg-blue-900/20 border border-blue-800 rounded">
+                    <p className="text-xs text-blue-400">
+                      💡 <span className="font-semibold">How to use:</span> Paste this proof in the Bank View's "Verify Proof" tab. The bank can verify your tier without seeing your exact score!
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -442,6 +555,7 @@ export default function CredentialManager({
             setSelectedMode(null);
             setPublicAttestation(null);
             setPrivacyAttestation(null);
+            setZkProof(null);
             setError(null);
           }}
           className="mt-4 w-full text-center text-gray-400 hover:text-white text-sm py-2 border border-gray-800 rounded-lg hover:border-gray-700 transition"
