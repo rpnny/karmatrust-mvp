@@ -550,20 +550,24 @@ curl -X POST http://localhost:3000/api/zkp/verify-with-attestation \
 ┌─────────────────────────────────▼───────────────────────────────────────┐
 │                         BLOCKCHAIN (Sepolia)                             │
 │                                                                          │
-│  ┌─────────────────────────┐  ┌─────────────────────────┐               │
-│  │  VCSMStateManager.sol   │  │   TieredLending.sol     │               │
-│  │  🏛️ CORE INFRASTRUCTURE │  │   ⚠️ REFERENCE EXAMPLE  │               │
-│  │  - Store state hashes   │  │  - Shows integration    │               │
-│  │  - Level (public)       │  │  - Demo collateral:     │               │
-│  │  - Score hash (private) │  │    Diamond: 110%        │               │
-│  └─────────────────────────┘  │    Gold: 125%           │               │
-│                               │    Bronze: 150%         │               │
-│  ┌─────────────────────────┐  │  (Replace with your     │               │
-│  │   EAS Attestations      │  │   own lending logic!)   │               │
-│  │  🏛️ CORE INFRASTRUCTURE │  └─────────────────────────┘               │
-│  │  - On-chain credentials │                                            │
-│  │  - Publicly verifiable  │                                            │
-│  └─────────────────────────┘                                            │
+│  ┌─────────────────────────────────────────────────────────────┐        │
+│  │              🏛️  KarmaTrust Core Infrastructure             │        │
+│  │                                                             │        │
+│  │  ┌─────────────────────────┐  ┌─────────────────────────┐  │        │
+│  │  │  VCSMStateManager.sol   │  │   EAS Attestations      │  │        │
+│  │  │  - Store state hashes   │  │  - On-chain credentials │  │        │
+│  │  │  - Level verification   │  │  - Public + private mode│  │        │
+│  │  │  - State transitions    │  │  - ZK-friendly schema   │  │        │
+│  │  └─────────────────────────┘  └─────────────────────────┘  │        │
+│  │                                                             │        │
+│  │  👆 THIS IS OUR PRODUCT                                     │        │
+│  │  Banks/DeFi call these contracts for credit verification   │        │
+│  └─────────────────────────────────────────────────────────────┘        │
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────────────┐        │
+│  │     📦 Example: TieredLending.sol (in contracts/examples/)  │        │
+│  │     Shows how integrators can build their own logic         │        │
+│  └─────────────────────────────────────────────────────────────┘        │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -601,10 +605,15 @@ FICO Score (300-850) = 300 + (Internal Score × 5.5)
 | 40-59 | 520-629 | 🥈 Silver | 140% | 20+ sybil score |
 | 0-39 | 300-519 | 🥉 Bronze | 150% | None |
 
-**Collateral Savings Example**:
-- Borrow 10 ETH with Diamond tier: 11 ETH collateral
-- Borrow 10 ETH with Bronze tier: 15 ETH collateral
-- **Savings: 4 ETH (27%)**
+**How Integrators Can Use This**:
+
+Lending protocols that integrate with KarmaTrust can adjust their collateral requirements based on tiers:
+- Example: Diamond tier users might need 110% collateral
+- Example: Bronze tier users might need 150% collateral  
+- **Potential savings: 27% less capital locked for high-credit users**
+
+> 💡 **Note**: KarmaTrust provides the tier data. **You** decide the collateral ratios.  
+> See `contracts/examples/TieredLending.sol` for a reference implementation.
 
 ---
 
@@ -724,8 +733,10 @@ karmatrust-mvp/
 │
 ├── contracts/                # Solidity + Hardhat
 │   ├── contracts/
-│   │   ├── VCSMStateManager.sol  # 🏛️ CORE: Credit state infrastructure
-│   │   └── TieredLending.sol     # ⚠️ EXAMPLE: Reference implementation only
+│   │   └── VCSMStateManager.sol  # 🏛️ CORE: Credit state infrastructure
+│   ├── examples/             # ⚠️ Reference implementations (NOT our product)
+│   │   ├── TieredLending.sol     # Example lending protocol
+│   │   └── README.md             # Why these are examples
 │   ├── scripts/deploy.ts
 │   └── test/
 │
@@ -860,7 +871,8 @@ This project utilized AI tools (Claude via Cursor) to accelerate development eff
 - ✅ **Anti-Sybil Defense in ZK Circuits**: The innovative idea of embedding sybil defense logic (wallet age, cross-protocol reputation) directly into ZK circuit constraints was a human innovation. This ensures that even wealthy users cannot bypass anti-gaming measures through刷号 (account farming).
 - ✅ **ZK + EAS Hybrid Architecture**: The design of storing commitment hashes on-chain while proving tier membership via ZK proofs was architected by the human developer to solve the privacy vs. verifiability trade-off.
 - ✅ **8-Factor Credit Scoring Algorithm**: The weight distribution (wallet age: 18%, transaction frequency: 12%, etc.) and the mapping to FICO-style 300-850 scores were manually designed based on financial domain knowledge.
-- ✅ **Tiered Lending Model**: The collateral ratio progression (150% → 110%) and the tier threshold design were human-created.
+- ✅ **Credit Tier System**: The tier threshold design (Bronze → Diamond) was human-created to provide a standardized way for institutions to categorize creditworthiness.
+- ✅ **Reference Implementation (TieredLending)**: Created as an example to demonstrate how integrators can use our infrastructure (now in `contracts/examples/`).
 
 **Strategic Decisions:**
 - ✅ Choosing Poseidon hash over SHA256 for ZK-friendliness
@@ -933,11 +945,13 @@ MIT License - see [LICENSE](./LICENSE)
 
 | Resource | URL |
 |----------|-----|
+| **Core Infrastructure** | |
 | GitHub | https://github.com/rpnny/karmatrust-mvp |
-| VCSMStateManager (Core) | [0x2113...E273 (Sepolia)](https://sepolia.etherscan.io/address/0x2113Dd751B588D807aA37e7D714864666d35E273) |
-| TieredLending (Example) | [0x37bA...6725 (Sepolia)](https://sepolia.etherscan.io/address/0x37bA854436157064F6d502DBA620778336116725) |
-| Demo Video | [Recording in Progress] |
+| VCSMStateManager | [0x2113...E273 (Sepolia)](https://sepolia.etherscan.io/address/0x2113Dd751B588D807aA37e7D714864666d35E273) |
 | EAS Attestations | [Sepolia EASScan](https://sepolia.easscan.org/) |
+| **Demo & Examples** | |
+| Demo Video | [Recording in Progress] |
+| TieredLending (Example) | [0x37bA...6725 (Sepolia)](https://sepolia.etherscan.io/address/0x37bA854436157064F6d502DBA620778336116725) |
 
 ---
 

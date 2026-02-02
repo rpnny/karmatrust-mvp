@@ -288,9 +288,10 @@ Flow:
      → Verifies: commitment + minTier exist
   3. Contract verifies ZK proof on-chain
      → Groth16 verification (gas: ~280k)
-  4. Contract grants lower collateral ratio
+  4. Integrator's contract (e.g., lending protocol) can grant benefits
+     → Example: lower collateral ratio based on verified tier
 
-Result: ✅ Trustless + On-chain + Private
+Result: ✅ Trustless + On-chain + Private + Integrator decides policy
 ```
 
 ---

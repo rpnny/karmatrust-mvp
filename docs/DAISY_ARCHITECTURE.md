@@ -85,7 +85,8 @@ Y - Zero-Knowledge       → Privacy by default (Groth16 ZK proofs)
 │              • FICO ←→ Tier conversion                       │
 ├─────────────────────────────────────────────────────────────┤
 │                  Smart Contract Layer                        │
-│  VCSMStateManager.sol  |  TieredLending.sol (deployed)     │
+│  🏛️ VCSMStateManager.sol (CORE)                              │
+│  ⚠️ TieredLending.sol (Example - in contracts/examples/)    │
 ├─────────────────────────────────────────────────────────────┤
 │                   Blockchain Layer                           │
 │         Ethereum (Sepolia testnet, Mainnet ready)           │
@@ -234,13 +235,17 @@ const attestation = await EAS.getAttestation(attestationId);
 const isValid = await verifyZKProof(proof, publicSignals);
 ```
 
-**Step 3**: Apply credit-based logic
+**Step 3**: Apply credit-based logic (Integrator's Code)
+
+> 💡 **Note**: This is YOUR code, not KarmaTrust's. We provide the tier data via VCSMStateManager.
 
 ```javascript
-// Reduce collateral ratio for creditworthy users
+// Example: Your lending protocol adjusts collateral based on KarmaTrust tier
 const collateralRatio = level >= CreditLevel.Gold ? 1.25 : 1.50;
 // Gold tier users: 125% collateral
 // Others: 150% collateral
+
+// See contracts/examples/TieredLending.sol for reference implementation
 ```
 
 ### DAISY SDK (Coming Soon)

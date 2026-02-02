@@ -79,13 +79,15 @@ State Hash: 0x1a2b3c... (commitment)
 
 **Output** (What DeFi understands):
 ```
-Tier: Platinum
-Collateral Ratio: 115%
-Max Borrow: 8.70 ETH per 10 ETH collateral
-Liquidation: 109%
+Tier: Platinum  ← From KarmaTrust VCSM
+Collateral Ratio: 115%  ← Integrator's policy decision
+Max Borrow: 8.70 ETH per 10 ETH collateral  ← Integrator's logic
+Liquidation: 109%  ← Integrator's risk management
 ```
 
-**Result**: Bank issues crypto loan using familiar risk assessment, DeFi protocol enforces on-chain.
+> 💡 **Note**: KarmaTrust provides the tier. The integrating protocol (bank/DeFi) decides collateral ratios and lending terms.
+
+**Result**: Bank issues crypto loan using familiar risk assessment (FICO → Tier via DAISY), DeFi protocol enforces on-chain using tier from VCSMStateManager.
 
 ---
 
@@ -206,7 +208,8 @@ GET /api/bridge/to-tradfi/:wallet
 
 # For DeFi protocols
 GET /api/bridge/to-defi/:wallet
-→ Returns: Tier, collateral ratio, ZK proof
+→ Returns: Tier, ZK proof capability
+→ Note: Integrator decides collateral ratios based on tier
 
 # For comparison/demo
 GET /api/bridge/both/:wallet

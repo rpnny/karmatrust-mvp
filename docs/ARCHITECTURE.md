@@ -210,10 +210,10 @@ sybilCheck.out === 1;  // If sybilScore < minSybilScore, proof FAILS
 │                                    │ reads level                         │
 │                                    ▼                                     │
 │  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │                    TieredLending.sol                               │  │
+│  │         TieredLending.sol (⚠️ EXAMPLE - contracts/examples/)       │  │
 │  ├───────────────────────────────────────────────────────────────────┤  │
-│  │                                                                    │  │
-│  │  Collateral Ratios by Tier:                                       │  │
+│  │  Reference implementation showing how integrators can use VCSM    │  │
+│  │  Collateral Ratios by Tier (YOUR protocol defines these):        │  │
 │  │  ┌─────────────────────────────────────────────────────────────┐  │  │
 │  │  │ Tier      │ Collateral │ Borrow 10 ETH │ Savings vs Bronze │  │  │
 │  │  ├───────────┼────────────┼───────────────┼───────────────────┤  │  │

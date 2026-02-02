@@ -1,9 +1,14 @@
 /**
  * KarmaTrust Contract Deployment Script
  * 
- * Deploys:
- * 1. VCSMStateManager - Credit state storage
- * 2. TieredLending - Credit-based lending (optional)
+ * Deploys Core Infrastructure:
+ * 1. VCSMStateManager - Credit state storage (CORE PRODUCT)
+ * 
+ * Optional Example:
+ * 2. TieredLending - Reference implementation showing how to integrate (EXAMPLE ONLY)
+ * 
+ * Note: In production, integrators deploy their own lending logic,
+ * not our example contract.
  * 
  * Usage:
  * npx hardhat run scripts/deploy.ts --network sepolia
@@ -37,17 +42,19 @@ async function main() {
   console.log(`✅ VCSMStateManager deployed to: ${stateManagerAddress}`);
 
   // =========================================================================
-  // Deploy TieredLending
+  // Deploy TieredLending (EXAMPLE ONLY - Optional)
   // =========================================================================
   
-  console.log("\n📦 Deploying TieredLending...");
+  console.log("\n📦 Deploying TieredLending (Example Integration)...");
+  console.log("   ⚠️  This is a REFERENCE IMPLEMENTATION");
+  console.log("   ⚠️  Integrators should deploy their own lending logic");
   
   const TieredLending = await ethers.getContractFactory("TieredLending");
   const lending = await TieredLending.deploy(stateManagerAddress);
   await lending.waitForDeployment();
   
   const lendingAddress = await lending.getAddress();
-  console.log(`✅ TieredLending deployed to: ${lendingAddress}`);
+  console.log(`✅ TieredLending (example) deployed to: ${lendingAddress}`);
 
   // =========================================================================
   // Verification Info
