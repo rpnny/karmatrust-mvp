@@ -1,14 +1,17 @@
 /**
- * Enhanced Bank/Protocol Dashboard - SIMPLIFIED
+ * Enhanced Bank/Protocol Dashboard - INFRASTRUCTURE VIEW
  * 
- * Focus: ZK Proof Verification Only
+ * Focus: ZK Proof Verification & Tier Data
  * 
- * Bank receives ZK proof from user and verifies it to determine:
+ * Bank/Protocol receives ZK proof from user and verifies it to get:
  * - Credit tier (without seeing exact score)
- * - Collateral requirements for lending
- * - Risk parameters
+ * - Verification status (cryptographically proven)
  * 
- * This is the core privacy-preserving feature.
+ * What This Component DOES NOT Show:
+ * - Lending parameters (collateral, interest rates)
+ * - Those are YOUR business decisions based on the tier
+ * 
+ * KarmaTrust provides the data. You make the lending decisions.
  */
 
 import { useState } from 'react';
@@ -32,18 +35,8 @@ interface VerificationResult {
     lower: number;
     upper: number;
   };
-  collateralRatio: number;
   message: string;
 }
-
-// Tier to collateral ratio mapping
-const TIER_COLLATERAL: Record<number, number> = {
-  1: 150, // Bronze: 150%
-  2: 130, // Silver: 130%
-  3: 120, // Gold: 120%
-  4: 110, // Platinum: 110%
-  5: 105, // Diamond: 105%
-};
 
 // =============================================================================
 // COMPONENT
@@ -87,7 +80,6 @@ export default function EnhancedBankDashboard({
           tier: data.data.tier,
           tierName: data.data.tierName,
           bounds: data.data.bounds,
-          collateralRatio: TIER_COLLATERAL[data.data.tier] || 150,
           message: data.data.message,
         });
       } else {
@@ -167,7 +159,7 @@ export default function EnhancedBankDashboard({
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-green-400">✓</span>
-                      <span>Get collateral requirements instantly</span>
+                      <span>Get verified tier data instantly</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-red-400">✗</span>
@@ -263,58 +255,58 @@ export default function EnhancedBankDashboard({
                   <p className="text-xs text-gray-400 mb-1">Tier Level</p>
                   <p className="text-3xl font-bold text-accent">{verificationResult.tier}</p>
                 </div>
-                <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 text-center">
-                  <p className="text-xs text-gray-400 mb-1">Collateral Ratio</p>
-                  <p className="text-3xl font-bold text-green-400">{verificationResult.collateralRatio}%</p>
+                <div className="bg-primary/20 border border-primary/40 rounded-lg p-4 text-center">
+                  <p className="text-xs text-gray-400 mb-1">Tier Name</p>
+                  <p className="text-2xl font-bold text-primary">{verificationResult.tierName}</p>
                 </div>
+              </div>
+              
+              <div className="bg-surface/30 border border-border rounded-lg p-4 mt-4">
+                <p className="text-xs text-gray-400 mb-1">Score Range</p>
+                <p className="text-lg text-white font-mono">
+                  {verificationResult.bounds.lower} - {verificationResult.bounds.upper}
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  User's exact score is hidden. Only tier membership is proven.
+                </p>
               </div>
             </div>
 
-            {/* Bridge Translation - DeFi Lending Parameters */}
-            <div className="bg-gradient-to-br from-bridge/10 via-surface/50 to-defi/10 rounded-xl p-6 border border-bridge/30">
+            {/* What You Can Do With This Data */}
+            <div className="bg-gradient-to-br from-bridge/10 via-surface/50 to-primary/10 rounded-xl p-6 border border-bridge/30">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-xl">🌉</span>
-                <h3 className="text-white font-semibold">DeFi Lending Parameters</h3>
+                <span className="text-xl">💡</span>
+                <h3 className="text-white font-semibold">What You Can Do With This Data</h3>
               </div>
 
-              <div className="space-y-3">
-                <div className="bg-defi/10 border border-defi/30 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-400">Max Loan Amount (for 1 ETH collateral)</span>
-                    <span className="text-lg font-bold text-defi">
-                      {(1 / verificationResult.collateralRatio * 100).toFixed(4)} ETH
-                    </span>
-                  </div>
-                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-defi to-primary"
-                      style={{ width: `${100 / verificationResult.collateralRatio * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="bg-green-900/20 border border-green-800 rounded-lg p-4">
-                  <p className="text-sm text-green-400">
-                    💰 Collateral Savings vs Bronze: 
-                    <span className="font-bold ml-2">
-                      {((150 - verificationResult.collateralRatio) / 150 * 100).toFixed(1)}%
-                    </span>
+              <div className="space-y-3 text-sm text-gray-300">
+                <div className="bg-surface/30 border border-border/50 rounded-lg p-4">
+                  <p className="font-semibold text-white mb-2">✅ Verified Credit Tier: {verificationResult.tierName}</p>
+                  <p className="text-gray-400">
+                    Use this tier to apply YOUR lending policies:
                   </p>
+                  <ul className="list-disc list-inside mt-2 space-y-1 text-gray-400">
+                    <li>Set your own collateral requirements</li>
+                    <li>Define your interest rates</li>
+                    <li>Determine max borrow amounts</li>
+                    <li>Apply your risk management rules</li>
+                  </ul>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 text-center text-xs">
-                  <div className="bg-surface/50 rounded-lg p-3">
-                    <p className="text-gray-500 mb-1">Interest Rate</p>
-                    <p className="text-white font-semibold">{(12 - verificationResult.tier).toFixed(1)}%</p>
-                  </div>
-                  <div className="bg-surface/50 rounded-lg p-3">
-                    <p className="text-gray-500 mb-1">Max Duration</p>
-                    <p className="text-white font-semibold">{30 * verificationResult.tier}d</p>
-                  </div>
-                  <div className="bg-surface/50 rounded-lg p-3">
-                    <p className="text-gray-500 mb-1">Liquidation</p>
-                    <p className="text-white font-semibold">{verificationResult.collateralRatio + 10}%</p>
-                  </div>
+                <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
+                  <p className="text-accent font-semibold mb-2">🏦 Example Integration</p>
+                  <code className="text-xs text-gray-300 block">
+                    {`if (tier >= 3) { // Gold or better
+  applyPremiumPolicy(user);
+} else {
+  applyStandardPolicy(user);
+}`}
+                  </code>
+                </div>
+
+                <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-xs text-gray-400">
+                  💡 <span className="font-semibold text-white">Remember:</span> KarmaTrust provides infrastructure. 
+                  Your institution makes the lending decisions.
                 </div>
               </div>
             </div>

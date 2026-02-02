@@ -8,9 +8,16 @@
  * - Dark theme (fits DeFi aesthetic)
  * - Neon green accent (#00ff88)
  * - Tier-based system (Bronze → Diamond)
- * - Collateral ratios instead of interest rates
  * - ZK proof verification status
  * - On-chain data emphasis
+ * 
+ * What This Shows:
+ * - Credit tier (from KarmaTrust VCSM)
+ * - On-chain verification data
+ * - ZK proof capability
+ * 
+ * What This Doesn't Show:
+ * - Lending parameters (those are YOUR decisions)
  */
 
 import { motion } from 'framer-motion';
@@ -24,7 +31,6 @@ interface DeFiReport {
   format: 'decentralized';
   tier: number;
   tierName: string;
-  collateralRatio: number;
   zkProofHash?: string;
   stateCommitment?: string;
   attestationId?: string;
@@ -140,20 +146,13 @@ export default function DeFiDashboard({ wallet }: DeFiDashboardProps) {
         </div>
       </motion.div>
 
-      {/* Collateral Ratio - Key Metric */}
+      {/* Verification Status & Network */}
       <motion.div
         className="grid grid-cols-2 gap-4 mb-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        <div className="bg-surface rounded-xl p-4 border border-primary/20">
-          <div className="text-xs text-gray-400 mb-2">Collateral Ratio</div>
-          <div className="text-3xl font-bold text-primary">{(report.collateralRatio * 100).toFixed(0)}%</div>
-          <div className="text-xs text-gray-500 mt-1">
-            {getSavingsText(report.collateralRatio)}
-          </div>
-        </div>
         <div className="bg-surface rounded-xl p-4 border border-primary/20">
           <div className="text-xs text-gray-400 mb-2">Verification Status</div>
           <div className="flex items-center gap-2">
@@ -162,6 +161,13 @@ export default function DeFiDashboard({ wallet }: DeFiDashboardProps) {
               <div className="text-sm font-semibold text-white">Verified</div>
               <div className="text-xs text-gray-500">On-chain</div>
             </div>
+          </div>
+        </div>
+        <div className="bg-surface rounded-xl p-4 border border-primary/20">
+          <div className="text-xs text-gray-400 mb-2">Network</div>
+          <div className="text-2xl font-bold text-primary">Sepolia</div>
+          <div className="text-xs text-gray-500 mt-1">
+            Chain ID: {report.networkId}
           </div>
         </div>
       </motion.div>
@@ -223,26 +229,31 @@ export default function DeFiDashboard({ wallet }: DeFiDashboardProps) {
         />
       </motion.div>
 
-      {/* Lending Parameters */}
+      {/* How to Use This Data */}
       <motion.div
         className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-4 mb-6 border border-primary/20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
       >
-        <h3 className="text-sm font-semibold text-primary mb-3">Lending Parameters</h3>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-400">Max Borrow (10 ETH collateral)</span>
-            <span className="text-white font-semibold">{(10 / report.collateralRatio).toFixed(2)} ETH</span>
+        <h3 className="text-sm font-semibold text-primary mb-3">🔌 Integration Guide</h3>
+        <div className="space-y-3 text-sm text-gray-300">
+          <p className="text-xs text-gray-400">
+            This tier data is provided by KarmaTrust infrastructure. 
+            Your protocol defines the lending policies.
+          </p>
+          <div className="bg-surface/50 rounded-lg p-3 border border-border/50">
+            <code className="text-xs text-primary font-mono block">
+              {`// Your smart contract
+uint8 tier = vcsm.getLevel(user);
+
+if (tier >= 3) { // Gold+
+  applyPremiumPolicy(user);
+}`}
+            </code>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Liquidation Threshold</span>
-            <span className="text-white font-semibold">{(report.collateralRatio * 0.95 * 100).toFixed(0)}%</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Credit Line Multiplier</span>
-            <span className="text-white font-semibold">{(1 / report.collateralRatio).toFixed(2)}x</span>
+          <div className="text-xs text-gray-500 border-t border-gray-800 pt-2">
+            💡 You decide: Collateral ratios, interest rates, liquidation thresholds
           </div>
         </div>
       </motion.div>
@@ -340,11 +351,3 @@ function getTimeAgo(timestamp: number): string {
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
-function getSavingsText(collateralRatio: number): string {
-  const baseline = 1.50;
-  const savings = ((baseline - collateralRatio) / baseline * 100);
-  if (savings > 0) {
-    return `${savings.toFixed(0)}% less than standard`;
-  }
-  return 'Standard ratio';
-}

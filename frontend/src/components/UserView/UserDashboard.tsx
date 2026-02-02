@@ -20,7 +20,7 @@ import FactorChart from '../shared/FactorChart';
 import CredentialManager from '../shared/CredentialManager';
 import ProofCard from '../shared/ProofCard';
 import StateCard from '../shared/StateCard';
-import LendingCard from '../shared/LendingCard';
+// import LendingCard from '../shared/LendingCard'; // Removed: Example component, not core infrastructure
 import { CreditScoreData } from '../../hooks/useCredit';
 
 // =============================================================================
@@ -137,15 +137,27 @@ export default function UserDashboard({ score, wallet }: UserDashboardProps) {
         </motion.div>
 
         {/* Tiered Lending */}
+        {/* LendingCard removed - it's an example implementation, not core infrastructure */}
+        {/* Banks/DeFi protocols should build their own lending UI with their own parameters */}
+        
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.9 }}
+          className="bg-primary/10 border border-primary/30 rounded-xl p-6"
         >
-          <LendingCard 
-            wallet={wallet}
-            creditLevel={score.level}
-          />
+          <h3 className="text-xl font-bold text-white mb-2">💡 For Developers</h3>
+          <p className="text-gray-300 text-sm mb-3">
+            KarmaTrust provides credit tier data. Banks and DeFi protocols build their own 
+            lending logic using this data.
+          </p>
+          <div className="bg-surface/50 rounded-lg p-3 border border-border">
+            <code className="text-xs text-primary font-mono">
+              {`// Example integration
+const tier = vcsm.getLevel(user);
+// Apply YOUR lending policy based on tier`}
+            </code>
+          </div>
         </motion.div>
 
         {/* Additional Info Section */}
