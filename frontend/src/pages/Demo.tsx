@@ -26,7 +26,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useCredit } from '../hooks/useCredit';
 import UserDashboard from '../components/UserView/UserDashboard';
-import BankDashboard from '../components/BankView/BankDashboard';
+import EnhancedBankDashboard from '../components/BankView/EnhancedBankDashboard';
 
 // =============================================================================
 // CONSTANTS
@@ -212,9 +212,9 @@ export default function Demo() {
                 </div>
               </div>
 
-              {/* Right: Bank View */}
+              {/* Right: Bank/Protocol View */}
               <div className="bg-surface/30 rounded-2xl p-6 border border-accent/20 min-h-[600px]">
-                <BankDashboard score={score} wallet={activeWallet} zkProofVerified={zkProofVerified} />
+                <EnhancedBankDashboard score={score} wallet={activeWallet} zkProofVerified={zkProofVerified} />
               </div>
             </div>
 
