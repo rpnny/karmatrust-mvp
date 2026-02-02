@@ -275,6 +275,79 @@ export class EASAttestationServiceV2 {
   }
 
   /**
+   * Read a commitment attestation from on-chain
+   * 
+   * This is CRITICAL for secure verification:
+   * Banks must check that the commitment in the ZK proof
+   * actually exists on-chain and hasn't been revoked.
+   * 
+   * @param attestationId - The attestation UID to read
+   * @returns Attestation data or null if not found
+   */
+  async getCommitmentAttestation(attestationId: string): Promise<{
+    commitment: string;
+    minTier: number;
+    timestamp: number;
+    recipient: string;
+    revoked: boolean;
+  } | null> {
+    console.log(`[EAS-V2] Reading attestation ${attestationId.slice(0, 20)}...`);
+
+    if (this.isSimulation) {
+      // In simulation mode, return mock data
+      console.log('[EAS-V2] Simulation mode: Returning mock attestation data');
+      return {
+        commitment: '0x0000000000000000000000000000000000000000000000000000000000000000',
+        minTier: 3,
+        timestamp: Date.now(),
+        recipient: '0x0000000000000000000000000000000000000000',
+        revoked: false,
+      };
+    }
+
+    try {
+      const easContract = new ethers.Contract(
+        EAS_CONFIG.sepolia.easContract,
+        EAS_ABI,
+        this.provider
+      );
+
+      const attestation = await easContract.getAttestation(attestationId);
+
+      // Check if attestation exists
+      if (attestation.uid === ethers.ZeroHash) {
+        console.log('[EAS-V2] Attestation not found on-chain');
+        return null;
+      }
+
+      // Decode data: bytes32 commitment, uint8 minTier, uint64 timestamp
+      const abiCoder = new ethers.AbiCoder();
+      const decoded = abiCoder.decode(
+        COMMITMENT_SCHEMA.types,
+        attestation.data
+      );
+
+      const result = {
+        commitment: decoded[0],
+        minTier: Number(decoded[1]),
+        timestamp: Number(decoded[2]),
+        recipient: attestation.recipient,
+        revoked: attestation.revocationTime > 0,
+      };
+
+      console.log('[EAS-V2] ✅ Attestation read successfully');
+      console.log(`[EAS-V2]   Commitment: ${result.commitment.slice(0, 20)}...`);
+      console.log(`[EAS-V2]   MinTier: ${result.minTier}`);
+      console.log(`[EAS-V2]   Revoked: ${result.revoked}`);
+
+      return result;
+    } catch (error) {
+      console.error('[EAS-V2] Failed to read attestation:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get schema details
    */
   getSchema() {

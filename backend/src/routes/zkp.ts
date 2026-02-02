@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { isAddress } from 'ethers';
 import { zkProofService } from '../services/zkProof.js';
 import { creditScoringService } from '../services/creditScoring.js';
+import { easAttestationServiceV2 } from '../services/easAttestationV2.js';
 import { CreditLevel, LEVEL_NAMES } from '../types/index.js';
 
 const router = Router();
@@ -235,6 +236,185 @@ router.post('/verify', async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to verify proof',
+      meta: { timestamp: Date.now() },
+    });
+  }
+});
+
+/**
+ * POST /api/zkp/verify-with-attestation
+ * 
+ * Verify a ZK proof AND check commitment on-chain (SECURE version).
+ * 
+ * This is the CORRECT way to verify Privacy Mode proofs:
+ * 1. Verify ZK proof is mathematically valid
+ * 2. Read commitment from on-chain EAS attestation
+ * 3. Verify proof's commitment matches on-chain commitment
+ * 4. Check attestation hasn't been revoked
+ * 
+ * Request Body:
+ * - proof: The ZK proof to verify
+ * - publicSignals: Public inputs (tier, bounds, commitment)
+ * - attestationId: The EAS attestation UID to verify against
+ * 
+ * Response:
+ * - valid: Whether ALL checks passed
+ * - tier: The tier being proven
+ * - onChainVerified: Whether commitment was verified on-chain
+ * - reason: Why verification failed (if applicable)
+ * 
+ * SECURITY:
+ * Without this on-chain check, users could generate fake commitments.
+ * This endpoint prevents forgery by anchoring proofs to on-chain attestations.
+ */
+router.post('/verify-with-attestation', async (req: Request, res: Response) => {
+  try {
+    const { proof, publicSignals, attestationId } = req.body;
+
+    // Validate required fields
+    if (!proof || !publicSignals || !attestationId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: proof, publicSignals, attestationId',
+        meta: { timestamp: Date.now() },
+      });
+    }
+
+    console.log(`[ZKP] Verifying proof with on-chain attestation: ${attestationId.slice(0, 20)}...`);
+    const startTime = Date.now();
+
+    // Step 1: Verify ZK proof mathematics
+    console.log('[ZKP] Step 1: Verifying ZK proof...');
+    const proofResult = await zkProofService.verifyProof(
+      { ...proof, publicSignals },
+      publicSignals
+    );
+
+    if (!proofResult.valid) {
+      console.log('[ZKP] ❌ ZK proof verification failed');
+      return res.json({
+        success: true,
+        data: {
+          valid: false,
+          reason: 'Invalid ZK proof - cryptographic verification failed',
+          tier: proofResult.tier,
+          tierName: LEVEL_NAMES[proofResult.tier],
+          onChainVerified: false,
+        },
+        meta: {
+          timestamp: Date.now(),
+          processingTimeMs: Date.now() - startTime,
+        },
+      });
+    }
+
+    console.log('[ZKP] ✅ ZK proof is mathematically valid');
+
+    // Step 2: Read commitment from on-chain attestation
+    console.log('[ZKP] Step 2: Reading on-chain attestation...');
+    const onChainData = await easAttestationServiceV2.getCommitmentAttestation(attestationId);
+
+    if (!onChainData) {
+      console.log('[ZKP] ❌ Attestation not found on-chain');
+      return res.json({
+        success: true,
+        data: {
+          valid: false,
+          reason: 'Attestation not found on-chain - may not exist or invalid ID',
+          tier: proofResult.tier,
+          tierName: LEVEL_NAMES[proofResult.tier],
+          onChainVerified: false,
+        },
+        meta: {
+          timestamp: Date.now(),
+          processingTimeMs: Date.now() - startTime,
+        },
+      });
+    }
+
+    console.log('[ZKP] ✅ Attestation found on-chain');
+
+    // Step 3: Verify commitment matches
+    console.log('[ZKP] Step 3: Verifying commitment match...');
+    const proofCommitment = publicSignals[3]; // commitment is the 4th public signal
+    
+    if (onChainData.commitment !== proofCommitment) {
+      console.log('[ZKP] ❌ Commitment mismatch');
+      console.log(`[ZKP]   Proof commitment:    ${proofCommitment}`);
+      console.log(`[ZKP]   On-chain commitment: ${onChainData.commitment}`);
+      return res.json({
+        success: true,
+        data: {
+          valid: false,
+          reason: 'Commitment mismatch - proof does not match on-chain attestation',
+          tier: proofResult.tier,
+          tierName: LEVEL_NAMES[proofResult.tier],
+          onChainVerified: false,
+        },
+        meta: {
+          timestamp: Date.now(),
+          processingTimeMs: Date.now() - startTime,
+        },
+      });
+    }
+
+    console.log('[ZKP] ✅ Commitment matches on-chain attestation');
+
+    // Step 4: Check attestation hasn't been revoked
+    console.log('[ZKP] Step 4: Checking revocation status...');
+    if (onChainData.revoked) {
+      console.log('[ZKP] ❌ Attestation has been revoked');
+      return res.json({
+        success: true,
+        data: {
+          valid: false,
+          reason: 'Attestation has been revoked - no longer valid',
+          tier: proofResult.tier,
+          tierName: LEVEL_NAMES[proofResult.tier],
+          onChainVerified: false,
+        },
+        meta: {
+          timestamp: Date.now(),
+          processingTimeMs: Date.now() - startTime,
+        },
+      });
+    }
+
+    console.log('[ZKP] ✅ Attestation is not revoked');
+
+    // All checks passed! 🎉
+    const processingTime = Date.now() - startTime;
+    console.log(`[ZKP] 🎉 ALL CHECKS PASSED in ${processingTime}ms`);
+    console.log(`[ZKP]   ✓ ZK proof valid`);
+    console.log(`[ZKP]   ✓ Attestation exists on-chain`);
+    console.log(`[ZKP]   ✓ Commitment matches`);
+    console.log(`[ZKP]   ✓ Not revoked`);
+
+    return res.json({
+      success: true,
+      data: {
+        valid: true,
+        tier: proofResult.tier,
+        tierName: LEVEL_NAMES[proofResult.tier],
+        bounds: proofResult.bounds,
+        onChainVerified: true,
+        attestationId,
+        recipient: onChainData.recipient,
+        minTier: onChainData.minTier,
+        isSimulated: proofResult.isSimulated,
+        message: `Proof and on-chain commitment verified: User is in ${LEVEL_NAMES[proofResult.tier]} tier (score ${proofResult.bounds.lower}-${proofResult.bounds.upper})`,
+      },
+      meta: {
+        timestamp: Date.now(),
+        processingTimeMs: processingTime,
+      },
+    });
+
+  } catch (error) {
+    console.error('[ZKP] Error in verify-with-attestation:', error);
+    return res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Verification failed',
       meta: { timestamp: Date.now() },
     });
   }
