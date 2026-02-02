@@ -1,8 +1,86 @@
-# 🏆 KarmaTrust: The DeFi-TradFi Bridge
+# 🏆 KarmaTrust: Credit Infrastructure for TradFi & DeFi
 
-> **Connecting Traditional Finance and Decentralized Finance through standardized, privacy-preserving credit infrastructure**
+> **Credit data provider. Not a lender.**
+> 
+> **We provide verifiable credit tiers. Institutions make lending decisions.**
 
 > **Powered by DAISY: Decentralized Attestation Infrastructure Secured by Zero-Knowledge Proofs**
+
+---
+
+## 🎯 What We Are (and What We're Not)
+
+<table>
+<tr>
+<td width="50%">
+
+### ✅ What KarmaTrust IS
+
+🏗️ **Infrastructure Provider**  
+├─ Credit data, not lending decisions
+
+📊 **Credit Scoring Engine**  
+├─ 8-factor algorithm → Bronze to Diamond tiers
+
+🔐 **Verification Layer**  
+├─ ZK proofs + EAS attestations
+
+🌉 **TradFi-DeFi Bridge**  
+├─ FICO scores ↔ On-chain tiers
+
+💡 **Think**: FICO, Experian, Equifax
+
+</td>
+<td width="50%">
+
+### ❌ What KarmaTrust is NOT
+
+❌ **Not a Lending Protocol**  
+├─ We don't approve/reject loans
+
+❌ **Not a Risk Manager**  
+├─ Institutions set their own policies
+
+❌ **Not Defining Terms**  
+├─ No collateral ratios from us  
+├─ No interest rates from us  
+├─ No liquidation thresholds from us
+
+💡 **Think**: Not Aave, Not Compound
+
+</td>
+</tr>
+</table>
+
+---
+
+### 📦 What We Deliver vs. What You Decide
+
+```
+┌──────────────────────────────────────────┐
+│  KarmaTrust Provides (Infrastructure)   │
+├──────────────────────────────────────────┤
+│  ✅ Credit Tier (1-5)                    │
+│  ✅ FICO-style Score (300-850)           │
+│  ✅ ZK Proof of Tier Membership          │
+│  ✅ On-chain Attestation                 │
+│  ✅ State Commitment Hash                │
+└──────────────────────────────────────────┘
+                  ↓
+         "Here's the credit data"
+                  ↓
+┌──────────────────────────────────────────┐
+│  Integrator Decides (Application)        │
+├──────────────────────────────────────────┤
+│  🏦 Collateral requirements              │
+│  💰 Interest rates                       │
+│  📊 Max borrow amounts                   │
+│  ⚖️ Risk policies                        │
+│  ✍️ Loan approval/rejection              │
+└──────────────────────────────────────────┘
+```
+
+**Analogy**: We're like the credit bureau. You're like the bank.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Status](https://img.shields.io/badge/status-MVP-yellow.svg)]()
@@ -160,20 +238,40 @@ calculateScore(wallet) → 762  // Just a number!
 
 ---
 
-## 🎯 What This Hackathon Project Does
+## 🎯 What This Hackathon Project Delivers
 
-**A complete, production-ready VCSM implementation:**
+**Core Infrastructure (The Product):**
 
-✅ **Calculates Credit Scores** - FICO-style (300-850) based on 8 on-chain factors  
-✅ **Generates Real ZK Proofs** - Groth16 proofs in 1-3 seconds (not simulated!)  
-✅ **Creates EAS Attestations** - Verifiable on-chain credentials  
-✅ **Anti-Sybil Defense** - Embedded in ZK circuits (can't be bypassed)  
-✅ **State Machine** - Tracks credit evolution with cryptographic guarantees
+✅ **Credit Tier Classification** - 5 tiers (Bronze → Diamond) based on 8 on-chain factors  
+✅ **Real ZK Proofs** - Groth16 tier membership proofs in 1-3 seconds (not simulated!)  
+✅ **EAS Attestations** - On-chain verifiable credentials  
+✅ **Anti-Sybil Defense** - Embedded in ZK circuits (mathematically enforced)  
+✅ **State Commitment System** - Cryptographic audit trail with Poseidon hashing
 
-**Architecture**: Infrastructure provider (like FICO), not a direct lender
+**What We Provide vs. What Integrators Decide:**
 
 ```
-User → KarmaTrust (VCSM + ZK Proofs) → Bank/DeFi (lending decisions)
+┌─────────────────────────────────────────────────────────────┐
+│  KarmaTrust Infrastructure (What We Provide)                │
+├─────────────────────────────────────────────────────────────┤
+│  ✅ Credit tier (1-5: Bronze → Diamond)                     │
+│  ✅ Score range (e.g., 60-79 for Gold)                      │
+│  ✅ ZK proof of tier membership                             │
+│  ✅ On-chain state commitment                               │
+│  ✅ EAS attestation                                         │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Integrator's Application (What YOU Decide)                 │
+├─────────────────────────────────────────────────────────────┤
+│  ❌ Collateral requirements                                 │
+│  ❌ Interest rates                                          │
+│  ❌ Max borrow amounts                                      │
+│  ❌ Liquidation thresholds                                  │
+│  ❌ Loan approval/rejection                                 │
+└─────────────────────────────────────────────────────────────┘
+
+Flow: User → KarmaTrust (tier data) → Bank/DeFi (lending policy)
 ```
 
 ---
@@ -255,14 +353,14 @@ To serve both audiences, KarmaTrust provides **two ways** to prove creditworthin
 
 ### 🌐 Mode 1: Public Attestation (Transparency)
 
-**Use Case**: High-score users want best rates
+**Use Case**: High-tier users want maximum credibility
 
 ```
-User → EAS On-Chain Attestation → Publicly Verifiable Score
+User → EAS On-Chain Attestation → Publicly Verifiable Tier/Score
 
-✓ Score visible on EASScan
-✓ Maximum trust from banks
-✓ Best interest rates
+✓ Tier/Score visible on EASScan
+✓ Maximum trust from institutions
+✓ Institutions can apply their best policies
 ✗ No privacy protection
 ```
 
