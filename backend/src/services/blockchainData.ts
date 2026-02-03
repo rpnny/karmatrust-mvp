@@ -48,9 +48,13 @@ const RPC_URLS = [
   'https://rpc.ankr.com/eth',                                                   // Ankr
 ];
 
-// Etherscan API configuration
-const ETHERSCAN_API_URL = 'https://api.etherscan.io/api';
+// Etherscan API configuration (V2)
+const ETHERSCAN_API_URL = 'https://api.etherscan.io/v2/api';
+const ETHERSCAN_CHAIN_ID = '1'; // Ethereum Mainnet
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
+
+// Log API key status at module load time
+console.log(`[BlockchainData] Etherscan API Key: ${ETHERSCAN_API_KEY ? '✅ SET (length=' + ETHERSCAN_API_KEY.length + ')' : '❌ NOT SET'}`);
 
 // =============================================================================
 // SERVICE CLASS
@@ -130,14 +134,19 @@ export class BlockchainDataService {
    * - Token transfers (for protocol diversity)
    */
   private async fetchFromEtherscan(wallet: string): Promise<WalletAnalysis> {
-    // Fetch transaction list
-    const txResponse = await fetch(
-      `${ETHERSCAN_API_URL}?module=account&action=txlist&address=${wallet}&startblock=0&endblock=99999999&sort=asc&apikey=${ETHERSCAN_API_KEY}`
-    );
+    console.log(`[BlockchainData] 🔍 Trying Etherscan API V2 for ${wallet.substring(0, 10)}...`);
+    
+    // Fetch transaction list (Etherscan API V2)
+    const txUrl = `${ETHERSCAN_API_URL}?chainid=${ETHERSCAN_CHAIN_ID}&module=account&action=txlist&address=${wallet}&startblock=0&endblock=99999999&sort=asc&apikey=${ETHERSCAN_API_KEY}`;
+    console.log(`[BlockchainData] 📡 Etherscan URL: ${txUrl.replace(ETHERSCAN_API_KEY, 'API_KEY')}`);
+    
+    const txResponse = await fetch(txUrl);
     const txData = await txResponse.json() as any;
 
+    console.log(`[BlockchainData] 📊 Etherscan response: status=${txData.status}, message=${txData.message}, results=${Array.isArray(txData.result) ? txData.result.length : 'N/A'}`);
+
     if (txData.status !== '1' || !txData.result) {
-      throw new Error('Etherscan API error: ' + txData.message);
+      throw new Error('Etherscan API V2 error: ' + txData.message);
     }
 
     const transactions = txData.result as any[];
@@ -158,13 +167,15 @@ export class BlockchainDataService {
       ? parseInt(transactions[transactions.length - 1].timeStamp) * 1000 
       : Date.now();
 
-    // Fetch balance
+    // Fetch balance (Etherscan API V2)
     const balanceResponse = await fetch(
-      `${ETHERSCAN_API_URL}?module=account&action=balance&address=${wallet}&tag=latest&apikey=${ETHERSCAN_API_KEY}`
+      `${ETHERSCAN_API_URL}?chainid=${ETHERSCAN_CHAIN_ID}&module=account&action=balance&address=${wallet}&tag=latest&apikey=${ETHERSCAN_API_KEY}`
     );
     const balanceData = await balanceResponse.json() as any;
     const balanceWei = balanceData.result || '0';
     const balanceEth = parseFloat(ethers.formatEther(balanceWei));
+    
+    console.log(`[BlockchainData] 💰 Balance: ${balanceWei} wei = ${balanceEth} ETH`);
 
     // Calculate volatility (simplified: based on tx frequency variance)
     const volatility = this.calculateVolatility(transactions);
