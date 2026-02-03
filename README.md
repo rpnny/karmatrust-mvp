@@ -82,7 +82,7 @@
 
 **Analogy**: We're like the credit bureau. You're like the bank.
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE)
 [![Status](https://img.shields.io/badge/status-MVP-yellow.svg)]()
 [![Network](https://img.shields.io/badge/network-Sepolia-purple.svg)]()
 [![ETHGlobal](https://img.shields.io/badge/hackathon-ETHGlobal-brightgreen.svg)]()
@@ -276,16 +276,20 @@ Flow: User → KarmaTrust (tier data) → Bank/DeFi (lending policy)
 
 ## 🎬 Demo
 
-> **Live Demo**: [Coming Soon]  
-> **Video Walkthrough**: [Coming Soon]
+> **Live Demo**: Run locally (see [Quick Start](#-quick-start) below)  
+> **GitHub**: [github.com/rpnny/karmatrust-mvp](https://github.com/rpnny/karmatrust-mvp)
 
-### Screenshots
+### Demo Features
 
 | User View (Full Data) | Bank View (Privacy Protected) |
 |:---------------------:|:-----------------------------:|
 | Score: **762** visible | Score: **???** hidden |
 | All factors shown | Only tier verified |
 | Generate ZK proof | Verify ZK proof |
+| See all 8 factors | Only sees tier range |
+| Create attestation | Verify on-chain |
+
+**Try it yourself**: Clone the repo and run `npm install && npm run dev` to experience the full demo with real ZK proofs!
 
 ---
 
@@ -1194,7 +1198,9 @@ Comprehensive guides and technical deep dives:
 
 ## 📄 License
 
-MIT License - see [LICENSE](./LICENSE)
+Apache 2.0 License - see [LICENSE](./LICENSE) for details.
+
+This project is licensed under the Apache License, Version 2.0.
 
 ---
 
@@ -1207,7 +1213,7 @@ MIT License - see [LICENSE](./LICENSE)
 | VCSMStateManager | [0x2113...E273 (Sepolia)](https://sepolia.etherscan.io/address/0x2113Dd751B588D807aA37e7D714864666d35E273) |
 | EAS Attestations | [Sepolia EASScan](https://sepolia.easscan.org/) |
 | **Demo & Examples** | |
-| Demo Video | [Recording in Progress] |
+| Local Demo | Run locally - see [Quick Start](#-quick-start) |
 | TieredLending (Example) | [0x37bA...6725 (Sepolia)](https://sepolia.etherscan.io/address/0x37bA854436157064F6d502DBA620778336116725) |
 
 ---

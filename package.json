@@ -24,7 +24,7 @@
     "privacy"
   ],
   "author": "Ronny <2867755637@qq.com>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "concurrently": "^8.2.2"
   }
