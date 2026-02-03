@@ -120,13 +120,13 @@ curl http://localhost:3000/api/zkp/status | jq '.'
 Try generating proofs for different wallet addresses to see different tiers:
 
 ```bash
-# Bronze tier (low score)
+# Lower tier (real wallet - Bob)
 curl -X POST http://localhost:3000/api/zkp/generate \
   -H "Content-Type: application/json" \
-  -d '{"wallet": "0xabcdefABCDEF12345678901234567890ABCDEF12"}' \
+  -d '{"wallet": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B"}' \
   | jq '.data.tierName'
 
-# Gold tier (high score)
+# High tier (real wallet - Vitalik)
 curl -X POST http://localhost:3000/api/zkp/generate \
   -H "Content-Type: application/json" \
   -d '{"wallet": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"}' \

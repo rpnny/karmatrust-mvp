@@ -24,8 +24,8 @@ import { motion } from 'framer-motion';
 
 const EXAMPLE_WALLETS = [
   { name: 'Vitalik', address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', icon: '👑' },
-  { name: 'Test High', address: '0x1234567890123456789012345678901234567890', icon: '📈' },
-  { name: 'Test Low', address: '0xabcdefABCDEF12345678901234567890ABCDEF12', icon: '📉' },
+  { name: 'Alice', address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e', icon: '👤' },
+  { name: 'Bob', address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B', icon: '👨‍💼' },
 ];
 
 const FEATURES = [
