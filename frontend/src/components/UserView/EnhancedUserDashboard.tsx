@@ -208,11 +208,12 @@ export default function EnhancedUserDashboard({
 
 function formatFactorName(key: string): string {
   const names: Record<string, string> = {
-    walletAge: 'Wallet Age',
-    txFrequency: 'Activity',
-    protocolDiversity: 'Diversity',
-    assetValue: 'Assets',
-    volatility: 'Stability',
+    wallet_age: 'Wallet Age',
+    transaction_frequency: 'Activity',
+    protocol_diversity: 'Diversity',
+    asset_value: 'Assets',
+    volatility: 'Volatility',
+    stability: 'Stability',
     scamRisk: 'Safety',
     liquidityScore: 'Liquidity',
     antiSybilScore: 'Anti-Sybil',
@@ -221,8 +222,14 @@ function formatFactorName(key: string): string {
 }
 
 function getMaxValue(key: string): number {
-  // Max values for different factors
+  // Max values for different factors (normalized to 1.0)
   const maxValues: Record<string, number> = {
+    wallet_age: 1,
+    transaction_frequency: 1,
+    protocol_diversity: 1,
+    asset_value: 1,
+    volatility: 1,
+    stability: 1,
     walletAge: 15,
     txFrequency: 10,
     protocolDiversity: 8,

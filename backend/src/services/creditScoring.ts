@@ -320,11 +320,12 @@ export class CreditScoringService {
     score = Math.max(0, Math.min(100, Math.round(score)));
 
     // Calculate normalized factors (0-1) for UI display
+    // NOTE: These must match the max thresholds used in scoring algorithm (WEIGHTS)
     const factors: ScoreFactors = {
-      wallet_age: Math.min(walletAgeDays / 730, 1),           // Max at 2 years
-      transaction_frequency: Math.min(analysis.transactionCount / 500, 1),
-      protocol_diversity: Math.min(analysis.uniqueProtocols / 20, 1),
-      asset_value: Math.min(analysis.totalValue / 100, 1),    // Max at 100 ETH
+      wallet_age: Math.min(walletAgeDays / 365, 1),           // Max at 1 year (matches WEIGHTS.WALLET_AGE)
+      transaction_frequency: Math.min(analysis.transactionCount / 200, 1), // Max at 200 tx (matches WEIGHTS.TX_FREQUENCY)
+      protocol_diversity: Math.min(analysis.uniqueProtocols / 15, 1),      // Max at 15 protocols (matches WEIGHTS.PROTOCOL_DIVERSITY)
+      asset_value: Math.min(analysis.totalValue / 50, 1),     // Max at 50 ETH (matches WEIGHTS.ASSET_VALUE)
       volatility: analysis.volatility,                        // Already 0-1
       stability: isActive ? 1 : Math.max(0, 1 - (daysSinceLastTx - 30) / 180),
     };

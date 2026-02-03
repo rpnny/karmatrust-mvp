@@ -89,7 +89,7 @@
 [![ZK Proofs](https://img.shields.io/badge/ZK_Proofs-REAL_✅_(not_simulated)-success.svg)]()
 [![Circuit](https://img.shields.io/badge/Circom-Groth16-blueviolet.svg)]()
 [![DAISY](https://img.shields.io/badge/Architecture-DAISY-ff69b4.svg)]()  
-[![Tests](https://img.shields.io/badge/Tests-12%2F12_Passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-Comprehensive-brightgreen.svg)]()
 [![Performance](https://img.shields.io/badge/ZK_Generation-852ms-success.svg)]()
 [![System](https://img.shields.io/badge/Demo_Ready-100%25-green.svg)]()
 
@@ -130,7 +130,7 @@ Result: Banks + DeFi can work together
 
 ## 🌼 What is DAISY?
 
-**DAISY (Decentralized Attestation Infrastructure Secured by Zero-Knowledge Proofs)** is KarmaTrust's core technology stack - the world's first credit infrastructure that bridges Traditional Finance and DeFi:
+**DAISY (Decentralized Attestation Infrastructure Secured by Zero-Knowledge Proofs)** is KarmaTrust's core technology stack - a novel credit infrastructure that bridges Traditional Finance and DeFi:
 
 - **D**ecentralized → EAS attestations (no central authority)
 - **A**ttestation → On-chain verifiable credentials
@@ -578,7 +578,7 @@ This is a **known engineering trade-off** in the MVP. The circuit architecture i
 - First proof after server restart is slower (~2-3s) due to cold circuit loading
 - Subsequent proofs are faster (~0.8-1.5s) with warm cache
 - Network conditions and server load may add latency
-- Verification is always 100x+ faster than generation
+- Verification is typically 100x+ faster than generation (~10ms vs ~1000ms)
 
 **For demo purposes**: Expect 1-3 seconds for proof generation in real-world conditions.
 
@@ -1000,7 +1000,7 @@ This is a hackathon MVP. For production:
 | EAS attestation | ~15s | On-chain transaction |
 | State transition | ~1s | In-memory (MVP) |
 
-**Test Results**: 56/56 tests passed (100%) across all systems
+**Test Coverage**: Comprehensive test suite across backend, contracts, and ZK circuits
 
 > 💡 See [TESTING.md](./TESTING.md) for detailed testing instructions and [ZK_PROOF_TEST.md](./ZK_PROOF_TEST.md) for ZK proof validation
 
@@ -1016,7 +1016,7 @@ This is a hackathon MVP. For production:
 - [x] VCSM state machine (fully functional)
 - [x] Smart contracts (deployed to Sepolia)
 - [x] DAISY bridge architecture
-- [x] Comprehensive test suite (12/12 passed)
+- [x] Comprehensive test suite (backend, contracts, ZK circuits)
 - [x] 10+ technical documentation files
 
 ### Post-Hackathon

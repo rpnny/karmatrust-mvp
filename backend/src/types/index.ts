@@ -72,10 +72,10 @@ export const LEVEL_NAMES: Record<CreditLevel, string> = {
  * Each factor contributes to the final credit score.
  */
 export interface ScoreFactors {
-  wallet_age: number;           // 0-1: Account age (max at 2 years)
-  transaction_frequency: number; // 0-1: TX count (max at 500)
-  protocol_diversity: number;   // 0-1: Protocols used (max at 20)
-  asset_value: number;          // 0-1: ETH value (max at 100)
+  wallet_age: number;           // 0-1: Account age (max at 1 year = matches WEIGHTS.WALLET_AGE)
+  transaction_frequency: number; // 0-1: TX count (max at 200 = matches WEIGHTS.TX_FREQUENCY)
+  protocol_diversity: number;   // 0-1: Protocols used (max at 15 = matches WEIGHTS.PROTOCOL_DIVERSITY)
+  asset_value: number;          // 0-1: ETH value (max at 50 ETH = matches WEIGHTS.ASSET_VALUE)
   volatility: number;           // 0-1: Behavioral volatility (lower is better)
   stability: number;            // 0-1: Recent activity pattern
 }
