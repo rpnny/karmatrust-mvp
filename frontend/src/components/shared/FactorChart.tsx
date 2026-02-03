@@ -56,25 +56,25 @@ const FACTOR_CONFIGS: FactorConfig[] = [
   {
     key: 'wallet_age',
     label: 'Wallet Age',
-    description: 'Account history length (2 years = max)',
+    description: 'Account history length (1+ year = max)',
     icon: '📅',
   },
   {
     key: 'transaction_frequency',
     label: 'Activity',
-    description: 'Transaction frequency (500+ tx = max)',
+    description: 'Transaction frequency (200+ tx = max)',
     icon: '⚡',
   },
   {
     key: 'protocol_diversity',
     label: 'Diversity',
-    description: 'DeFi protocols used (20+ = max)',
+    description: 'DeFi protocols used (15+ = max)',
     icon: '🔀',
   },
   {
     key: 'asset_value',
     label: 'Assets',
-    description: 'ETH holdings (100+ ETH = max)',
+    description: 'ETH holdings (50+ ETH = max)',
     icon: '💎',
   },
   {
