@@ -204,37 +204,35 @@ Result: Banks + DeFi can work together
 
 ---
 
-## 💎 Core Innovation: VCSM (Verifiable Credit State Machine)
+## 💎 VCSM at a Glance
 
-**What makes KarmaTrust fundamentally different:**
+**What makes KarmaTrust different: Credit as a State Machine**
 
-Most DeFi "credit" projects just port FICO to blockchain:
+Most DeFi "credit" projects just calculate a number:
 ```javascript
 calculateScore(wallet) → 762  // Just a number!
 ```
 
-**VCSM treats credit as an evolving state machine with cryptographic guarantees:**
+**VCSM treats credit as an evolving state machine:**
 
 ```
 ┌──────────┐   ZK Proof    ┌──────────┐   ZK Proof    ┌──────────┐
 │  Bronze  │  ───────────> │  Silver  │  ───────────> │   Gold   │
-│ Score: 35│   proves:     │ Score: 52│   proves:     │ Score: 68│
-│   v1     │   - score≥40  │   v2     │   - score≥60  │   v3     │
-│ Hash:abc │   - pays≥3    │ Hash:def │   - pays≥6    │ Hash:123 │
-└──────────┘   - sybil≥20  └──────────┘   - sybil≥35  └──────────┘
+│ Score: 35│   + Hash      │ Score: 52│   + Hash      │ Score: 68│
+│   v1     │   Chain       │   v2     │   Chain       │   v3     │
+└──────────┘               └──────────┘               └──────────┘
       │                          │                          │
       └──────────────────────────┴──────────────────────────┘
                     Cryptographic Hash Chain
-              (Each state commits to previous)
 ```
 
-**Why this matters:**
-- ✅ **Verifiable Transitions**: Every upgrade requires a zero-knowledge proof (not just server approval)
-- ✅ **Immutable History**: Cryptographic hash chain makes state history tamper-evident
-- ✅ **Anti-Gaming in Math**: Sybil defense is in the ZK circuit (mathematically enforced, not bypassable)
-- ✅ **Privacy-Preserving**: ZK proofs hide exact scores, only reveal tier membership
+**Key Features:**
+- ✅ Every upgrade requires a ZK proof
+- ✅ Immutable audit trail via hash chain
+- ✅ Anti-sybil logic in circuits
+- ✅ Privacy-preserving (score hidden)
 
-**Read more**: [VCSM Technical Deep Dive](./docs/VCSM_INNOVATION.md)
+📖 **Want technical details?** See [VCSM Technical Deep Dive](#vcsm-technical-deep-dive) below or [full documentation](./docs/VCSM_INNOVATION.md)
 
 ---
 
@@ -416,7 +414,9 @@ This is not a bug—it's intentional design. Different users have different need
 
 ---
 
-## 🌟 Core Innovation: VCSM (Verifiable Credit State Machine)
+## 🔬 VCSM Technical Deep Dive
+
+> **Verifiable Credit State Machine**: A complete technical breakdown
 
 **This is what makes KarmaTrust fundamentally different from traditional credit scoring.**
 
