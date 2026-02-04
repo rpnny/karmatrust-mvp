@@ -210,10 +210,10 @@ export class CreditScoringService {
    * @param wallet - Ethereum address
    * @returns Complete credit score with factors breakdown
    */
-  async calculateScore(wallet: string): Promise<CreditScore & { dataSource: string; trustLevel: number }> {
-    // Fetch wallet data (with three-layer fallback)
+  async calculateScore(wallet: string): Promise<CreditScore & { dataSource: string; trustLevel: number; cached?: boolean }> {
+    // Fetch wallet data (with three-layer fallback and caching)
     const analysisData = await blockchainDataService.fetchWalletData(wallet);
-    const { dataSource, trustLevel, ...analysis } = analysisData;
+    const { dataSource, trustLevel, cached, ...analysis } = analysisData;
 
     // Calculate score and factors
     const { score, factors } = this.computeScore(analysis);
@@ -232,9 +232,11 @@ export class CreditScoringService {
       timestamp: Date.now(),
       dataSource,
       trustLevel,
+      cached, // Include cache status in response
       meta: {
         dataSource,
         version: '0.1.0-mvp',
+        cached: cached ? 'hit' : 'miss',
       },
     };
   }

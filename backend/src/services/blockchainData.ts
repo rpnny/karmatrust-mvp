@@ -57,6 +57,58 @@ const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
 console.log(`[BlockchainData] Etherscan API Key: ${ETHERSCAN_API_KEY ? '✅ SET (length=' + ETHERSCAN_API_KEY.length + ')' : '❌ NOT SET'}`);
 
 // =============================================================================
+// CACHE CONFIGURATION
+// =============================================================================
+
+/**
+ * Cache for wallet analysis results
+ * 
+ * Why caching?
+ * - Etherscan API has rate limits (5 calls/sec)
+ * - Large wallets (10k+ tx) take 10+ seconds to analyze
+ * - Same wallet data doesn't change frequently
+ * - Demo Day: avoid slow responses during presentation
+ * 
+ * Cache Strategy:
+ * - TTL: 5 minutes (300 seconds) - balance between freshness and performance
+ * - Key: normalized wallet address (lowercase)
+ * - Cleared on server restart (in-memory only)
+ */
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+interface CacheEntry {
+  data: WalletAnalysis & { dataSource: string; trustLevel: number };
+  timestamp: number;
+  expiresAt: number;
+}
+
+const walletCache = new Map<string, CacheEntry>();
+
+/**
+ * Get cache statistics for monitoring
+ */
+export function getCacheStats(): {
+  size: number;
+  entries: Array<{ wallet: string; age: number; expiresIn: number }>;
+} {
+  const now = Date.now();
+  const entries = Array.from(walletCache.entries()).map(([wallet, entry]) => ({
+    wallet: wallet.slice(0, 10) + '...',
+    age: Math.round((now - entry.timestamp) / 1000),
+    expiresIn: Math.round((entry.expiresAt - now) / 1000),
+  }));
+  return { size: walletCache.size, entries };
+}
+
+/**
+ * Clear all cache entries
+ */
+export function clearCache(): void {
+  walletCache.clear();
+  console.log('[BlockchainData] Cache cleared');
+}
+
+// =============================================================================
 // SERVICE CLASS
 // =============================================================================
 
@@ -81,17 +133,26 @@ export class BlockchainDataService {
   }
 
   /**
-   * Fetch wallet analysis data
+   * Fetch wallet analysis data (with caching)
    * 
    * Uses three-layer fallback:
    * 1. Try Etherscan API (best data)
    * 2. Try RPC provider (basic data)
    * 3. Use deterministic baseline (always works)
    * 
+   * Caching:
+   * - Results cached for 5 minutes
+   * - Dramatically improves response time for repeated queries
+   * - Essential for Demo Day performance
+   * 
    * @param wallet - Ethereum address to analyze
+   * @param skipCache - Force refresh (bypass cache)
    * @returns WalletAnalysis with data source metadata
    */
-  async fetchWalletData(wallet: string): Promise<WalletAnalysis & { dataSource: string; trustLevel: number }> {
+  async fetchWalletData(
+    wallet: string, 
+    skipCache: boolean = false
+  ): Promise<WalletAnalysis & { dataSource: string; trustLevel: number; cached?: boolean }> {
     // Validate address format
     if (!ethers.isAddress(wallet)) {
       throw new Error(`Invalid Ethereum address: ${wallet}`);
@@ -99,16 +160,54 @@ export class BlockchainDataService {
 
     // Normalize address (checksum format)
     const normalizedWallet = ethers.getAddress(wallet);
+    const cacheKey = normalizedWallet.toLowerCase();
+
+    // Check cache first (unless skipCache is true)
+    if (!skipCache) {
+      const cached = walletCache.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        const age = Math.round((Date.now() - cached.timestamp) / 1000);
+        console.log(`[BlockchainData] 🎯 Cache HIT for ${normalizedWallet.slice(0, 10)}... (age: ${age}s)`);
+        return { ...cached.data, cached: true };
+      }
+    }
+
+    console.log(`[BlockchainData] 📡 Cache MISS for ${normalizedWallet.slice(0, 10)}... - fetching fresh data`);
+    const startTime = Date.now();
 
     // Try Etherscan API first
+    let result: WalletAnalysis & { dataSource: string; trustLevel: number };
+    
     if (ETHERSCAN_API_KEY) {
       try {
         const data = await this.fetchFromEtherscan(normalizedWallet);
-        return { ...data, dataSource: 'etherscan', trustLevel: DATA_SOURCES.etherscan.trustLevel };
+        result = { ...data, dataSource: 'etherscan', trustLevel: DATA_SOURCES.etherscan.trustLevel };
       } catch (error) {
         console.warn('[BlockchainData] Etherscan failed, trying RPC...', error);
+        result = await this.fetchWithFallback(normalizedWallet);
       }
+    } else {
+      result = await this.fetchWithFallback(normalizedWallet);
     }
+
+    // Store in cache
+    const now = Date.now();
+    walletCache.set(cacheKey, {
+      data: result,
+      timestamp: now,
+      expiresAt: now + CACHE_TTL_MS,
+    });
+
+    const fetchTime = Date.now() - startTime;
+    console.log(`[BlockchainData] ✅ Fetched and cached ${normalizedWallet.slice(0, 10)}... in ${fetchTime}ms`);
+
+    return { ...result, cached: false };
+  }
+
+  /**
+   * Fallback fetch when Etherscan fails
+   */
+  private async fetchWithFallback(normalizedWallet: string): Promise<WalletAnalysis & { dataSource: string; trustLevel: number }> {
 
     // Try RPC provider
     if (this.provider) {
