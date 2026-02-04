@@ -77,11 +77,12 @@ router.post('/generate', async (req: Request, res: Response) => {
   try {
     const { wallet, tier: requestedTier, salt, commitment } = req.body;
 
-    // Validate wallet
+    // Validate wallet - provide clear error message with example
     if (!wallet || typeof wallet !== 'string') {
       return res.status(400).json({
         success: false,
-        error: 'Missing required field: wallet',
+        error: 'Missing required field: wallet. Please provide an Ethereum address.',
+        hint: 'Example request body: { "wallet": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" }',
         meta: { timestamp: Date.now() },
       });
     }
@@ -90,7 +91,9 @@ router.post('/generate', async (req: Request, res: Response) => {
     if (!validationResult.success) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid Ethereum address format',
+        error: 'Invalid Ethereum address format. Must be a valid 0x-prefixed address.',
+        provided: wallet,
+        hint: 'Example: 0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
         meta: { timestamp: Date.now() },
       });
     }
