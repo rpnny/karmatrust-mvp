@@ -128,6 +128,31 @@ Result: Banks + DeFi can work together
 
 ---
 
+## 🏆 Why KarmaTrust vs. Competitors?
+
+| Feature | KarmaTrust | Spectral | Credefi | Masa |
+|---------|-----------|----------|---------|------|
+| **Core Approach** | State Machine (VCSM) | ML Scoring | Oracle-based | Soulbound Tokens |
+| **ZK Privacy** | ✅ Real Groth16 | ❌ None | ⚠️ Partial | ❌ None |
+| **Anti-Sybil** | ✅ In-circuit (math enforced) | ⚠️ Backend | ⚠️ Backend | ⚠️ Backend |
+| **State Evolution** | ✅ Cryptographic hash chain | ❌ Static | ❌ Static | ❌ Static |
+| **TradFi Bridge** | ✅ FICO ↔ Tiers | ❌ DeFi only | ⚠️ Limited | ❌ DeFi only |
+| **Verifiability** | ✅ On-chain + ZK | ⚠️ Trust backend | ⚠️ Trust oracle | ✅ On-chain |
+
+### Our Key Differentiators:
+
+1. **VCSM (Verifiable Credit State Machine)** - Credit isn't just a number, it's an evolving state with cryptographic proof of every transition
+
+2. **Real ZK Proofs** - Not simulated. Groth16 with Poseidon hashing. Verify yourself: `isSimulated: false`
+
+3. **Anti-Sybil in Circuit** - Even with infinite money, you can't fake wallet age. Mathematically impossible.
+
+4. **Dual-Mode Credentials** - Users choose: Public (EAS) for credibility, Private (ZK) for privacy
+
+> 📖 **Full Analysis**: See [COMPETITIVE_ANALYSIS.md](docs/COMPETITIVE_ANALYSIS.md) for detailed comparison
+
+---
+
 ## 🌼 What is DAISY?
 
 **DAISY (Decentralized Attestation Infrastructure Secured by Zero-Knowledge Proofs)** is KarmaTrust's core technology stack - a novel credit infrastructure that bridges Traditional Finance and DeFi:
