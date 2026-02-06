@@ -196,20 +196,37 @@ template TierMembershipProof(n) {
     
     // Enforce: At least one tier must match with correct bounds
     // (tier1 AND bounds1) OR (tier2 AND bounds2) OR ... OR (tier5 AND bounds5)
+    // Note: Must split into two steps to avoid cubic constraints
+    
+    // Bronze tier match
+    signal tier1Temp;
+    tier1Temp <== isTier1.out * checkBronzeLower.out;
     signal tier1Match;
-    tier1Match <== isTier1.out * checkBronzeLower.out * checkBronzeUpper.out;
+    tier1Match <== tier1Temp * checkBronzeUpper.out;
     
+    // Silver tier match
+    signal tier2Temp;
+    tier2Temp <== isTier2.out * checkSilverLower.out;
     signal tier2Match;
-    tier2Match <== isTier2.out * checkSilverLower.out * checkSilverUpper.out;
+    tier2Match <== tier2Temp * checkSilverUpper.out;
     
+    // Gold tier match
+    signal tier3Temp;
+    tier3Temp <== isTier3.out * checkGoldLower.out;
     signal tier3Match;
-    tier3Match <== isTier3.out * checkGoldLower.out * checkGoldUpper.out;
+    tier3Match <== tier3Temp * checkGoldUpper.out;
     
+    // Platinum tier match
+    signal tier4Temp;
+    tier4Temp <== isTier4.out * checkPlatinumLower.out;
     signal tier4Match;
-    tier4Match <== isTier4.out * checkPlatinumLower.out * checkPlatinumUpper.out;
+    tier4Match <== tier4Temp * checkPlatinumUpper.out;
     
+    // Diamond tier match
+    signal tier5Temp;
+    tier5Temp <== isTier5.out * checkDiamondLower.out;
     signal tier5Match;
-    tier5Match <== isTier5.out * checkDiamondLower.out * checkDiamondUpper.out;
+    tier5Match <== tier5Temp * checkDiamondUpper.out;
     
     // Sum of all matches must be exactly 1 (one tier matches)
     signal totalMatches;
