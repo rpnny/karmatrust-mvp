@@ -339,12 +339,16 @@ router.post('/verify-with-attestation', async (req: Request, res: Response) => {
 
     // Step 3: Verify commitment matches
     console.log('[ZKP] Step 3: Verifying commitment match...');
-    const proofCommitment = publicSignals[3]; // commitment is the 4th public signal
     
-    if (onChainData.commitment !== proofCommitment) {
+    // publicSignals[3] is a decimal string, need to convert to hex for comparison
+    const proofCommitmentDecimal = publicSignals[3]; // commitment is the 4th public signal
+    const proofCommitmentHex = '0x' + BigInt(proofCommitmentDecimal).toString(16).padStart(64, '0');
+    
+    console.log(`[ZKP]   Proof commitment (hex):    ${proofCommitmentHex}`);
+    console.log(`[ZKP]   On-chain commitment (hex): ${onChainData.commitment}`);
+    
+    if (onChainData.commitment !== proofCommitmentHex) {
       console.log('[ZKP] ❌ Commitment mismatch');
-      console.log(`[ZKP]   Proof commitment:    ${proofCommitment}`);
-      console.log(`[ZKP]   On-chain commitment: ${onChainData.commitment}`);
       return res.json({
         success: true,
         data: {
