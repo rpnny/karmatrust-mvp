@@ -196,8 +196,23 @@ contract VCSMStateManager is Ownable, ReentrancyGuard {
     }
     
     /**
-     * @notice Update state with a proof (simplified for MVP)
-     * @dev In production, this would verify a Groth16 ZK proof
+     * @notice Update state with a proof (MVP - off-chain verification)
+     * 
+     * @dev CURRENT STATE (Hackathon MVP):
+     * - ZK proof verification happens OFF-CHAIN in backend
+     * - On-chain contract stores the state commitment + level
+     * - _proofHash is logged in events for audit trail
+     * 
+     * @dev PRODUCTION ROADMAP:
+     * - Integrate Groth16 verifier contract (deployed separately)
+     * - Add: require(zkpVerifier.verify(proof, publicSignals), "Invalid proof")
+     * - Gas cost: ~250k per verification
+     * 
+     * @dev WHY OFF-CHAIN NOW:
+     * - Hackathon time constraint
+     * - Verifier deployment + ceremony setup takes 2-3 days
+     * - Core innovation (VCSM + ZK circuits) is demonstrated
+     * 
      * @param _newStateHash New state hash commitment
      * @param _newLevel New credit level
      * @param _proofHash Hash of the ZK proof (for event logging)

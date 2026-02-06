@@ -147,15 +147,54 @@ template StateTransitionProof() {
     upgradeCheck.out === 1;
     
     // =========================================================================
-    // ADDITIONAL RANGE CHECKS (Implicit via circuit constraints)
+    // CONSTRAINT 8: Business Domain Range Checks (SECURITY FIX)
     // =========================================================================
-    // These checks are implicitly enforced by the circuit logic:
-    // - oldScore, newScore are in valid range (0-100)
-    // - fromLevel, toLevel are in valid range (1-5)
-    // - All inputs fit within field size (BN254 scalar field)
+    // Explicitly enforce that all values are within valid business domain.
+    // Without these, attacker could use out-of-range values (e.g., score=255).
     
-    // Note: In production, you might add explicit range checks using RangeProof
-    // For hackathon MVP, the implicit checks are sufficient
+    // Score range: 0-100
+    component oldScoreMax = LessEqThan(8);
+    oldScoreMax.in[0] <== oldScore;
+    oldScoreMax.in[1] <== 100;
+    oldScoreMax.out === 1;
+    
+    component newScoreMax = LessEqThan(8);
+    newScoreMax.in[0] <== newScore;
+    newScoreMax.in[1] <== 100;
+    newScoreMax.out === 1;
+    
+    // Level range: 1-5 (Bronze to Diamond)
+    component fromLevelMin = GreaterEqThan(8);
+    fromLevelMin.in[0] <== fromLevel;
+    fromLevelMin.in[1] <== 1;
+    fromLevelMin.out === 1;
+    
+    component fromLevelMax = LessEqThan(8);
+    fromLevelMax.in[0] <== fromLevel;
+    fromLevelMax.in[1] <== 5;
+    fromLevelMax.out === 1;
+    
+    component toLevelMin = GreaterEqThan(8);
+    toLevelMin.in[0] <== toLevel;
+    toLevelMin.in[1] <== 1;
+    toLevelMin.out === 1;
+    
+    component toLevelMax = LessEqThan(8);
+    toLevelMax.in[0] <== toLevel;
+    toLevelMax.in[1] <== 5;
+    toLevelMax.out === 1;
+    
+    // Debt ratio range: 0-100
+    component debtRatioMax = LessEqThan(8);
+    debtRatioMax.in[0] <== debtRatio;
+    debtRatioMax.in[1] <== 100;
+    debtRatioMax.out === 1;
+    
+    // Sybil score range: 0-100
+    component sybilScoreMax = LessEqThan(8);
+    sybilScoreMax.in[0] <== sybilScore;
+    sybilScoreMax.in[1] <== 100;
+    sybilScoreMax.out === 1;
 }
 
 // =========================================================================

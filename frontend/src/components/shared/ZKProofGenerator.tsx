@@ -53,7 +53,10 @@ export default function ZKProofGenerator({
       // Normalize address to lowercase to avoid checksum issues
       const normalizedWallet = wallet.toLowerCase();
       
-      const response = await fetch('http://localhost:3000/api/zkp/generate', {
+      // Use environment variable or default to relative path
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      
+      const response = await fetch(`${apiBase}/api/zkp/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

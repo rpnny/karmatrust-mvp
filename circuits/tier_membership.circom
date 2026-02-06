@@ -114,6 +114,132 @@ template TierMembershipProof(n) {
     lessEq.out === 1;
     
     // =========================================================================
+    // CONSTRAINT 4: Tier-Bounds Consistency (SECURITY FIX)
+    // =========================================================================
+    //
+    // CRITICAL: Verify that tier matches the provided bounds.
+    // Without this, attacker could provide Gold bounds but claim Diamond tier.
+    //
+    // Tier-to-bounds mapping:
+    // - Bronze (1): 0-39
+    // - Silver (2): 40-59
+    // - Gold (3): 60-79
+    // - Platinum (4): 80-89
+    // - Diamond (5): 90-100
+    //
+    // We enforce this by checking each tier's expected bounds.
+    
+    // Check if tier is Bronze (1)
+    component isTier1 = IsEqual();
+    isTier1.in[0] <== tier;
+    isTier1.in[1] <== 1;
+    
+    component checkBronzeLower = IsEqual();
+    checkBronzeLower.in[0] <== lowerBound;
+    checkBronzeLower.in[1] <== 0;
+    
+    component checkBronzeUpper = IsEqual();
+    checkBronzeUpper.in[0] <== upperBound;
+    checkBronzeUpper.in[1] <== 39;
+    
+    // Check if tier is Silver (2)
+    component isTier2 = IsEqual();
+    isTier2.in[0] <== tier;
+    isTier2.in[1] <== 2;
+    
+    component checkSilverLower = IsEqual();
+    checkSilverLower.in[0] <== lowerBound;
+    checkSilverLower.in[1] <== 40;
+    
+    component checkSilverUpper = IsEqual();
+    checkSilverUpper.in[0] <== upperBound;
+    checkSilverUpper.in[1] <== 59;
+    
+    // Check if tier is Gold (3)
+    component isTier3 = IsEqual();
+    isTier3.in[0] <== tier;
+    isTier3.in[1] <== 3;
+    
+    component checkGoldLower = IsEqual();
+    checkGoldLower.in[0] <== lowerBound;
+    checkGoldLower.in[1] <== 60;
+    
+    component checkGoldUpper = IsEqual();
+    checkGoldUpper.in[0] <== upperBound;
+    checkGoldUpper.in[1] <== 79;
+    
+    // Check if tier is Platinum (4)
+    component isTier4 = IsEqual();
+    isTier4.in[0] <== tier;
+    isTier4.in[1] <== 4;
+    
+    component checkPlatinumLower = IsEqual();
+    checkPlatinumLower.in[0] <== lowerBound;
+    checkPlatinumLower.in[1] <== 80;
+    
+    component checkPlatinumUpper = IsEqual();
+    checkPlatinumUpper.in[0] <== upperBound;
+    checkPlatinumUpper.in[1] <== 89;
+    
+    // Check if tier is Diamond (5)
+    component isTier5 = IsEqual();
+    isTier5.in[0] <== tier;
+    isTier5.in[1] <== 5;
+    
+    component checkDiamondLower = IsEqual();
+    checkDiamondLower.in[0] <== lowerBound;
+    checkDiamondLower.in[1] <== 90;
+    
+    component checkDiamondUpper = IsEqual();
+    checkDiamondUpper.in[0] <== upperBound;
+    checkDiamondUpper.in[1] <== 100;
+    
+    // Enforce: At least one tier must match with correct bounds
+    // (tier1 AND bounds1) OR (tier2 AND bounds2) OR ... OR (tier5 AND bounds5)
+    signal tier1Match;
+    tier1Match <== isTier1.out * checkBronzeLower.out * checkBronzeUpper.out;
+    
+    signal tier2Match;
+    tier2Match <== isTier2.out * checkSilverLower.out * checkSilverUpper.out;
+    
+    signal tier3Match;
+    tier3Match <== isTier3.out * checkGoldLower.out * checkGoldUpper.out;
+    
+    signal tier4Match;
+    tier4Match <== isTier4.out * checkPlatinumLower.out * checkPlatinumUpper.out;
+    
+    signal tier5Match;
+    tier5Match <== isTier5.out * checkDiamondLower.out * checkDiamondUpper.out;
+    
+    // Sum of all matches must be exactly 1 (one tier matches)
+    signal totalMatches;
+    totalMatches <== tier1Match + tier2Match + tier3Match + tier4Match + tier5Match;
+    totalMatches === 1;
+    
+    // =========================================================================
+    // CONSTRAINT 5: Business Domain Range Checks (SECURITY FIX)
+    // =========================================================================
+    //
+    // Ensure score is within business domain (0-100)
+    // Without this, attacker could use score 255 with manipulated bounds
+    
+    component scoreMax = LessEqThan(n);
+    scoreMax.in[0] <== score;
+    scoreMax.in[1] <== 100;
+    scoreMax.out === 1;
+    
+    // Ensure tier is within valid range (1-5)
+    component tierMin = GreaterEqThan(n);
+    tierMin.in[0] <== tier;
+    tierMin.in[1] <== 1;
+    tierMin.out === 1;
+    
+    component tierMax = LessEqThan(n);
+    tierMax.in[0] <== tier;
+    tierMax.in[1] <== 5;
+    tierMax.out === 1;
+    
+    // =========================================================================
     // OUTPUT
     // =========================================================================
     // 
@@ -123,6 +249,8 @@ template TierMembershipProof(n) {
     // The verifier learns:
     // - The user's score IS within [lowerBound, upperBound]
     // - The commitment IS correctly formed
+    // - The tier and bounds are consistent (SECURITY: now enforced!)
+    // - All values are within valid business domain
     // 
     // The verifier does NOT learn:
     // - The exact score

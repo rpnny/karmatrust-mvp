@@ -114,6 +114,14 @@ export class EASAttestationServiceV2 {
   private easContract: ethers.Contract | null = null;
   private isSimulation: boolean = true;
   private schemaId: string;
+  // Simulation mode: in-memory store for attestation commitments
+  private simulationStore: Map<string, {
+    commitment: string;
+    minTier: number;
+    timestamp: number;
+    recipient: string;
+    revoked: boolean;
+  }> = new Map();
 
   constructor() {
     // Initialize provider
@@ -185,7 +193,17 @@ export class EASAttestationServiceV2 {
       )
     );
 
+    // Store in simulation store for later verification
+    this.simulationStore.set(attestationId, {
+      commitment: data.commitment,
+      minTier: data.minTier,
+      timestamp: data.timestamp,
+      recipient: data.wallet,
+      revoked: false,
+    });
+
     console.log(`[EAS-V2] Simulated commitment attestation: ${attestationId.slice(0, 20)}...`);
+    console.log(`[EAS-V2] Stored commitment: ${data.commitment.slice(0, 20)}... for verification`);
 
     return {
       attestationId,
@@ -294,15 +312,17 @@ export class EASAttestationServiceV2 {
     console.log(`[EAS-V2] Reading attestation ${attestationId.slice(0, 20)}...`);
 
     if (this.isSimulation) {
-      // In simulation mode, return mock data
-      console.log('[EAS-V2] Simulation mode: Returning mock attestation data');
-      return {
-        commitment: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        minTier: 3,
-        timestamp: Date.now(),
-        recipient: '0x0000000000000000000000000000000000000000',
-        revoked: false,
-      };
+      // In simulation mode, check our in-memory store
+      const stored = this.simulationStore.get(attestationId);
+      if (stored) {
+        console.log('[EAS-V2] Simulation mode: Found attestation in store');
+        console.log(`[EAS-V2]   Commitment: ${stored.commitment.slice(0, 20)}...`);
+        console.log(`[EAS-V2]   MinTier: ${stored.minTier}`);
+        return stored;
+      } else {
+        console.log('[EAS-V2] Simulation mode: Attestation not found in store');
+        return null;
+      }
     }
 
     try {
