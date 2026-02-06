@@ -1,10 +1,10 @@
 # 🤖 AI Usage Documentation
 
 **Project**: KarmaTrust  
-**Hackathon**: ETHGlobal 2026  
+**Hackathon**: ETHGlobal HackMoney 2026  
 **Developer**: Ronny  
 **AI Tool Used**: Claude (via Cursor IDE)  
-**Dates**: January 2026
+**Dates**: January 31 - February 6, 2026
 
 ---
 
@@ -122,7 +122,7 @@ AI was used to **implement** the human-designed logic. This includes:
 ## Proof of Human Work
 
 ### 1. **Commit History**
-- 50+ granular commits, each with clear, descriptive messages
+- 100+ granular commits, each with clear, descriptive messages
 - Commits show iterative development (not "dump everything at once")
 - See: `git log --oneline --all`
 

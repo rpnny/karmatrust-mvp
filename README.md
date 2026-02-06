@@ -90,7 +90,7 @@
 [![Circuit](https://img.shields.io/badge/Circom-Groth16-blueviolet.svg)]()
 [![DAISY](https://img.shields.io/badge/Architecture-DAISY-ff69b4.svg)]()  
 [![Tests](https://img.shields.io/badge/Tests-Comprehensive-brightgreen.svg)]()
-[![Performance](https://img.shields.io/badge/ZK_Generation-852ms-success.svg)]()
+[![Performance](https://img.shields.io/badge/ZK_Generation-1--3s-success.svg)]()
 [![System](https://img.shields.io/badge/Demo_Ready-100%25-green.svg)]()
 
 ---
@@ -1136,7 +1136,7 @@ This project utilized AI tools (Claude via Cursor) to accelerate development eff
 ### Transparency Commitment
 
 We believe in transparent AI usage and have:
-1. ✅ Maintained detailed version control with 50+ granular commits
+1. ✅ Maintained detailed version control with 100+ granular commits
 2. ✅ Documented all architectural decisions in `docs/` folder
 3. ✅ Included circuit compilation artifacts to prove ZK circuit authenticity
 4. ✅ Provided comprehensive test suites to validate human-designed logic
