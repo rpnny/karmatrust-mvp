@@ -1180,10 +1180,32 @@ This project is licensed under the Apache License, Version 2.0.
 | **Core Infrastructure** | |
 | GitHub | https://github.com/rpnny/karmatrust-mvp |
 | VCSMStateManager | [0x2113...E273 (Sepolia)](https://sepolia.etherscan.io/address/0x2113Dd751B588D807aA37e7D714864666d35E273) |
+| **Groth16Verifier** | [0x3D16...E98B (Sepolia)](https://sepolia.etherscan.io/address/0x3D16757Fd72979C504Ea0b4F63b07372d612E98B) |
 | EAS Attestations | [Sepolia EASScan](https://sepolia.easscan.org/) |
 | **Demo & Examples** | |
 | Local Demo | Run locally - see [Quick Start](#-quick-start) |
 | TieredLending (Example) | [0x37bA...6725 (Sepolia)](https://sepolia.etherscan.io/address/0x37bA854436157064F6d502DBA620778336116725) |
+
+## 🔐 On-Chain ZK Verification
+
+**NEW**: KarmaTrust now supports **fully trustless on-chain ZK proof verification**:
+
+```solidity
+// Users can submit proofs DIRECTLY to the contract
+// No backend trust required - "Trust Math, Not Humans"
+await stateManager.updateStateWithProof(
+    proof.pi_a,    // G1 point
+    proof.pi_b,    // G2 point  
+    proof.pi_c,    // G1 point
+    [tier, lowerBound, upperBound, commitment],
+    newStateHash
+);
+```
+
+| Mode | Function | Trust Model | Gas Cost |
+|------|----------|-------------|----------|
+| **Trustless** | `updateStateWithProof()` | On-chain Groth16 verifier | ~250k |
+| **Efficient** | `updateState()` | Off-chain + trusted attester | ~50k |
 
 ---
 
