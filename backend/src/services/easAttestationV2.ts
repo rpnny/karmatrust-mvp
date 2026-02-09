@@ -110,18 +110,9 @@ export function generateSalt(): bigint {
 
 export class EASAttestationServiceV2 {
   private provider: ethers.JsonRpcProvider;
-  private signer: ethers.Wallet | null = null;
-  private easContract: ethers.Contract | null = null;
-  private isSimulation: boolean = true;
+  private signer: ethers.Wallet;
+  private easContract: ethers.Contract;
   private schemaId: string;
-  // Simulation mode: in-memory store for attestation commitments
-  private simulationStore: Map<string, {
-    commitment: string;
-    minTier: number;
-    timestamp: number;
-    recipient: string;
-    revoked: boolean;
-  }> = new Map();
 
   constructor() {
     // Initialize provider
@@ -131,25 +122,30 @@ export class EASAttestationServiceV2 {
     // Use registered schema ID
     this.schemaId = COMMITMENT_SCHEMA.uid!;
 
-    // Check for private key (enables real mode)
+    // Require private key - no simulation mode
     const privateKey = process.env.PRIVATE_KEY;
-    if (privateKey) {
-      try {
-        const pk = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
-        this.signer = new ethers.Wallet(pk, this.provider);
-        this.easContract = new ethers.Contract(
-          EAS_CONFIG.sepolia.easContract,
-          EAS_ABI,
-          this.signer
-        );
-        this.isSimulation = false;
-        console.log('[EAS-V2] ZK-friendly mode enabled ✅');
-        console.log(`[EAS-V2] Attester: ${this.signer.address}`);
-      } catch (error) {
-        console.warn('[EAS-V2] Falling back to simulation:', error);
-      }
-    } else {
-      console.log('[EAS-V2] Simulation mode (no PRIVATE_KEY)');
+    if (!privateKey) {
+      const error = new Error(
+        'PRIVATE_KEY environment variable is required.\n' +
+        'Set PRIVATE_KEY in your .env file to sign EAS attestations.'
+      );
+      console.error('[EAS-V2] ❌ FATAL:', error.message);
+      throw error;
+    }
+
+    try {
+      const pk = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
+      this.signer = new ethers.Wallet(pk, this.provider);
+      this.easContract = new ethers.Contract(
+        EAS_CONFIG.sepolia.easContract,
+        EAS_ABI,
+        this.signer
+      );
+      console.log('[EAS-V2] ✅ EAS service initialized');
+      console.log(`[EAS-V2] Attester: ${this.signer.address}`);
+    } catch (error) {
+      console.error('[EAS-V2] ❌ Failed to initialize EAS service:', error);
+      throw new Error('Failed to initialize signer. Check your PRIVATE_KEY format.');
     }
   }
 
@@ -163,63 +159,6 @@ export class EASAttestationServiceV2 {
    * @returns Attestation result with UID and explorer URL
    */
   async createCommitmentAttestation(
-    data: CommitmentAttestationData
-  ): Promise<CommitmentAttestationResult> {
-    console.log(`[EAS-V2] Creating commitment attestation for ${data.wallet.slice(0, 10)}...`);
-
-    if (this.isSimulation) {
-      return this.createSimulatedCommitmentAttestation(data);
-    }
-
-    return this.createRealCommitmentAttestation(data);
-  }
-
-  /**
-   * Create simulated commitment attestation
-   */
-  private createSimulatedCommitmentAttestation(
-    data: CommitmentAttestationData
-  ): CommitmentAttestationResult {
-    // Generate deterministic attestation ID
-    const attestationId = ethers.keccak256(
-      ethers.solidityPacked(
-        ['address', 'bytes32', 'uint8', 'uint64'],
-        [
-          data.wallet,
-          data.commitment,
-          data.minTier,
-          BigInt(Math.floor(data.timestamp / 1000)),
-        ]
-      )
-    );
-
-    // Store in simulation store for later verification
-    this.simulationStore.set(attestationId, {
-      commitment: data.commitment,
-      minTier: data.minTier,
-      timestamp: data.timestamp,
-      recipient: data.wallet,
-      revoked: false,
-    });
-
-    console.log(`[EAS-V2] Simulated commitment attestation: ${attestationId.slice(0, 20)}...`);
-    console.log(`[EAS-V2] Stored commitment: ${data.commitment.slice(0, 20)}... for verification`);
-
-    return {
-      attestationId,
-      explorerUrl: `${EAS_CONFIG.sepolia.explorerUrl}/attestation/view/${attestationId}`,
-      schemaId: this.schemaId,
-      recipient: data.wallet,
-      commitment: data.commitment,
-      minTier: data.minTier,
-      isSimulated: true,
-    };
-  }
-
-  /**
-   * Create real on-chain commitment attestation
-   */
-  private async createRealCommitmentAttestation(
     data: CommitmentAttestationData
   ): Promise<CommitmentAttestationResult> {
     if (!this.signer || !this.easContract) {
@@ -239,57 +178,51 @@ export class EASAttestationServiceV2 {
 
     console.log('[EAS-V2] Sending commitment attestation transaction...');
 
-    try {
-      // Create attestation request
-      const attestationRequest = {
-        schema: this.schemaId,
-        data: {
-          recipient: data.wallet,
-          expirationTime: 0n,
-          revocable: true,
-          refUID: ethers.ZeroHash,
-          data: encodedData,
-          value: 0n,
-        },
-      };
-
-      // Send transaction
-      const tx = await this.easContract.attest(attestationRequest);
-      console.log(`[EAS-V2] Transaction sent: ${tx.hash}`);
-
-      // Wait for confirmation
-      const receipt = await tx.wait();
-      console.log(`[EAS-V2] Transaction confirmed in block ${receipt.blockNumber}`);
-
-      // Extract attestation UID from logs
-      let attestationId = ethers.ZeroHash;
-      const attestedEventSig = ethers.id('Attested(address,address,bytes32,bytes32)');
-      const attestedLog = receipt.logs.find((log: any) => log.topics[0] === attestedEventSig);
-      
-      if (attestedLog) {
-        attestationId = attestedLog.data;
-        console.log(`[EAS-V2] Commitment attestation UID: ${attestationId}`);
-      } else {
-        console.log('[EAS-V2] Attested event not found, using fallback');
-        attestationId = receipt.logs[0]?.data || ethers.ZeroHash;
-      }
-
-      return {
-        attestationId,
-        explorerUrl: `${EAS_CONFIG.sepolia.explorerUrl}/attestation/view/${attestationId}`,
-        schemaId: this.schemaId,
+    // Create attestation request
+    const attestationRequest = {
+      schema: this.schemaId,
+      data: {
         recipient: data.wallet,
-        commitment: data.commitment,
-        minTier: data.minTier,
-        txHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        isSimulated: false,
-      };
-    } catch (error) {
-      console.error('[EAS-V2] Transaction failed:', error);
-      console.log('[EAS-V2] Falling back to simulation mode');
-      return this.createSimulatedCommitmentAttestation(data);
+        expirationTime: 0n,
+        revocable: true,
+        refUID: ethers.ZeroHash,
+        data: encodedData,
+        value: 0n,
+      },
+    };
+
+    // Send transaction
+    const tx = await this.easContract.attest(attestationRequest);
+    console.log(`[EAS-V2] Transaction sent: ${tx.hash}`);
+
+    // Wait for confirmation
+    const receipt = await tx.wait();
+    console.log(`[EAS-V2] Transaction confirmed in block ${receipt.blockNumber}`);
+
+    // Extract attestation UID from logs
+    let attestationId = ethers.ZeroHash;
+    const attestedEventSig = ethers.id('Attested(address,address,bytes32,bytes32)');
+    const attestedLog = receipt.logs.find((log: any) => log.topics[0] === attestedEventSig);
+    
+    if (attestedLog) {
+      attestationId = attestedLog.data;
+      console.log(`[EAS-V2] Commitment attestation UID: ${attestationId}`);
+    } else {
+      console.log('[EAS-V2] Attested event not found, using fallback');
+      attestationId = receipt.logs[0]?.data || ethers.ZeroHash;
     }
+
+    return {
+      attestationId,
+      explorerUrl: `${EAS_CONFIG.sepolia.explorerUrl}/attestation/view/${attestationId}`,
+      schemaId: this.schemaId,
+      recipient: data.wallet,
+      commitment: data.commitment,
+      minTier: data.minTier,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+      isSimulated: false,
+    };
   }
 
   /**
@@ -311,60 +244,41 @@ export class EASAttestationServiceV2 {
   } | null> {
     console.log(`[EAS-V2] Reading attestation ${attestationId.slice(0, 20)}...`);
 
-    if (this.isSimulation) {
-      // In simulation mode, check our in-memory store
-      const stored = this.simulationStore.get(attestationId);
-      if (stored) {
-        console.log('[EAS-V2] Simulation mode: Found attestation in store');
-        console.log(`[EAS-V2]   Commitment: ${stored.commitment.slice(0, 20)}...`);
-        console.log(`[EAS-V2]   MinTier: ${stored.minTier}`);
-        return stored;
-      } else {
-        console.log('[EAS-V2] Simulation mode: Attestation not found in store');
-        return null;
-      }
-    }
+    const easContract = new ethers.Contract(
+      EAS_CONFIG.sepolia.easContract,
+      EAS_ABI,
+      this.provider
+    );
 
-    try {
-      const easContract = new ethers.Contract(
-        EAS_CONFIG.sepolia.easContract,
-        EAS_ABI,
-        this.provider
-      );
+    const attestation = await easContract.getAttestation(attestationId);
 
-      const attestation = await easContract.getAttestation(attestationId);
-
-      // Check if attestation exists
-      if (attestation.uid === ethers.ZeroHash) {
-        console.log('[EAS-V2] Attestation not found on-chain');
-        return null;
-      }
-
-      // Decode data: bytes32 commitment, uint8 minTier, uint64 timestamp
-      const abiCoder = new ethers.AbiCoder();
-      const decoded = abiCoder.decode(
-        COMMITMENT_SCHEMA.types,
-        attestation.data
-      );
-
-      const result = {
-        commitment: decoded[0],
-        minTier: Number(decoded[1]),
-        timestamp: Number(decoded[2]),
-        recipient: attestation.recipient,
-        revoked: attestation.revocationTime > 0,
-      };
-
-      console.log('[EAS-V2] ✅ Attestation read successfully');
-      console.log(`[EAS-V2]   Commitment: ${result.commitment.slice(0, 20)}...`);
-      console.log(`[EAS-V2]   MinTier: ${result.minTier}`);
-      console.log(`[EAS-V2]   Revoked: ${result.revoked}`);
-
-      return result;
-    } catch (error) {
-      console.error('[EAS-V2] Failed to read attestation:', error);
+    // Check if attestation exists
+    if (attestation.uid === ethers.ZeroHash) {
+      console.log('[EAS-V2] Attestation not found on-chain');
       return null;
     }
+
+    // Decode data: bytes32 commitment, uint8 minTier, uint64 timestamp
+    const abiCoder = new ethers.AbiCoder();
+    const decoded = abiCoder.decode(
+      COMMITMENT_SCHEMA.types,
+      attestation.data
+    );
+
+    const result = {
+      commitment: decoded[0],
+      minTier: Number(decoded[1]),
+      timestamp: Number(decoded[2]),
+      recipient: attestation.recipient,
+      revoked: attestation.revocationTime > 0,
+    };
+
+    console.log('[EAS-V2] ✅ Attestation read successfully');
+    console.log(`[EAS-V2]   Commitment: ${result.commitment.slice(0, 20)}...`);
+    console.log(`[EAS-V2]   MinTier: ${result.minTier}`);
+    console.log(`[EAS-V2]   Revoked: ${result.revoked}`);
+
+    return result;
   }
 
   /**

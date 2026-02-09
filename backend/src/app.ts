@@ -19,6 +19,8 @@ import zkpRoutes from './routes/zkp.js';
 import vcsmRoutes from './routes/vcsm.js';
 import contractRoutes from './routes/contracts.js';
 import bridgeRoutes from './routes/bridge.js';
+import reclaimRoutes from './routes/reclaim.js';
+import paymasterRoutes from './routes/paymaster.js';
 
 const app = express();
 
@@ -62,6 +64,8 @@ app.get('/api/health', (_req: Request, res: Response) => {
         vcsm: '/api/vcsm/*',
         contracts: '/api/contracts/*',
         bridge: '/api/bridge/*',
+        reclaim: '/api/reclaim/*',
+        paymaster: '/api/paymaster/*',
       },
     },
   });
@@ -81,6 +85,12 @@ app.use('/api/contracts', contractRoutes);
 
 // Bridge translation routes (TradFi ↔️ DeFi)
 app.use('/api/bridge', bridgeRoutes);
+
+// Reclaim Protocol routes (zkTLS data provenance)
+app.use('/api/reclaim', reclaimRoutes);
+
+// Paymaster routes (gas sponsorship)
+app.use('/api/paymaster', paymasterRoutes);
 
 
 // =============================================================================

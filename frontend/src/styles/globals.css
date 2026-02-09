@@ -14,6 +14,8 @@
  * - Body: Inter (clean, readable)
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -24,9 +26,12 @@
 
 :root {
   --primary: #00ff88;
+  --primary-dark: #00cc6a;
   --accent: #ffd700;
+  --accent-dark: #ccac00;
   --background: #0a0a0a;
   --surface: #1a1a1a;
+  --surface-light: #222222;
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
   --text-muted: #666666;
@@ -34,6 +39,9 @@
   --error: #ff4444;
   --success: #00ff88;
   --warning: #ffd700;
+  --purple: #8b5cf6;
+  --blue: #3b82f6;
+  --bridge: #00d4ff;
 }
 
 /* =============================================================================
@@ -152,6 +160,53 @@ a:hover {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes border-glow {
+  0%, 100% {
+    border-color: rgba(0, 255, 136, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 255, 136, 0.5);
+  }
+}
+
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -159,6 +214,24 @@ a:hover {
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-border-glow {
+  animation: border-glow 2s ease-in-out infinite;
 }
 
 /* =============================================================================
@@ -237,6 +310,173 @@ a:hover {
 }
 
 /* =============================================================================
+   Custom Scrollbar (Enhanced)
+   ============================================================================= */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* =============================================================================
+   Glassmorphism
+   ============================================================================= */
+
+.glass-panel {
+  background: rgba(26, 26, 26, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* =============================================================================
+   Gradient Text
+   ============================================================================= */
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--primary), #00cc6a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--accent), #ffaa00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-rainbow {
+  background: linear-gradient(135deg, var(--primary), var(--purple), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* =============================================================================
+   Button Styles
+   ============================================================================= */
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: black;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* =============================================================================
+   Card Hover Effects
+   ============================================================================= */
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.card-glow-primary:hover {
+  box-shadow: 0 0 40px rgba(0, 255, 136, 0.15);
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.card-glow-accent:hover {
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.card-glow-purple:hover {
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+/* =============================================================================
+   Data Display
+   ============================================================================= */
+
+.data-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.data-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* =============================================================================
+   Tier Colors
+   ============================================================================= */
+
+.tier-bronze { color: #cd7f32; }
+.tier-silver { color: #c0c0c0; }
+.tier-gold { color: #ffd700; }
+.tier-platinum { color: #e5e4e2; }
+.tier-diamond { color: #b9f2ff; }
+
+.bg-tier-bronze { background-color: rgba(205, 127, 50, 0.1); }
+.bg-tier-silver { background-color: rgba(192, 192, 192, 0.1); }
+.bg-tier-gold { background-color: rgba(255, 215, 0, 0.1); }
+.bg-tier-platinum { background-color: rgba(229, 228, 226, 0.1); }
+.bg-tier-diamond { background-color: rgba(185, 242, 255, 0.1); }
+
+/* =============================================================================
+   Focus States (Enhanced)
+   ============================================================================= */
+
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.3);
+}
+
+.focus-ring-accent:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+/* =============================================================================
    Responsive Utilities
    ============================================================================= */
 
@@ -247,5 +487,20 @@ a:hover {
   
   .terminal-card {
     padding: 1rem;
+  }
+}
+
+/* =============================================================================
+   Print Styles
+   ============================================================================= */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .no-print {
+    display: none !important;
   }
 }

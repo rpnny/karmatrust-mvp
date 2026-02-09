@@ -1,0 +1,127 @@
+// KarmaTrust Prisma Schema
+// PostgreSQL database for persistence
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Wallet credit scores
+model WalletScore {
+  id        String   @id @default(cuid())
+  wallet    String   @unique
+  score     Int      // 300-850
+  tier      Int      // 1-5
+  factors   Json     // ScoreFactors breakdown
+  
+  // Metadata
+  dataSource    String   // "etherscan" | "rpc"
+  trustLevel    Int      // 100, 80, etc
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  proofs        ZKProof[]
+  attestations  Attestation[]
+  
+  @@index([wallet])
+  @@index([tier])
+  @@index([createdAt])
+}
+
+// ZK Proofs generated
+model ZKProof {
+  id        String   @id @default(cuid())
+  wallet    String
+  
+  // Proof data
+  proof         Json     // { pi_a, pi_b, pi_c }
+  publicSignals Json     // [tier, lower, upper, commitment]
+  tier          Int
+  
+  // Metadata
+  circuitId       String   // "tier_membership" | "state_transition"
+  generationTime  Int      // milliseconds
+  isSimulated     Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  
+  // Relations
+  score  WalletScore @relation(fields: [wallet], references: [wallet])
+  
+  @@index([wallet])
+  @@index([tier])
+  @@index([createdAt])
+}
+
+// EAS Attestations
+model Attestation {
+  id        String   @id @default(cuid())
+  wallet    String
+  
+  // Attestation data
+  attestationId String   @unique  // EAS UID
+  mode          String   // "public" | "privacy"
+  
+  // For public mode
+  score         Int?
+  tier          Int
+  
+  // For privacy mode
+  commitment    String?  // Poseidon hash
+  salt          String?  // hex string
+  
+  // Metadata
+  schemaId      String
+  txHash        String?
+  
+  createdAt DateTime @default(now())
+  
+  // Relations
+  scoreRecord  WalletScore @relation(fields: [wallet], references: [wallet])
+  
+  @@index([wallet])
+  @@index([attestationId])
+  @@index([createdAt])
+}
+
+// State transitions (VCSM)
+model StateTransition {
+  id        String   @id @default(cuid())
+  wallet    String
+  
+  fromLevel Int
+  toLevel   Int
+  
+  oldStateHash String
+  newStateHash String
+  
+  proof         Json?    // ZK proof for transition
+  sybilScore    Int?     // Anti-sybil score
+  
+  createdAt DateTime @default(now())
+  
+  @@index([wallet])
+  @@index([createdAt])
+}
+
+// Analytics cache
+model Analytics {
+  id        String   @id @default(cuid())
+  
+  // Aggregated stats
+  totalWallets  Int
+  avgScore      Float
+  tierDistribution Json  // { "1": count, "2": count, ... }
+  
+  // Time-series
+  date      DateTime @unique
+  createdAt DateTime @default(now())
+  
+  @@index([date])
+}

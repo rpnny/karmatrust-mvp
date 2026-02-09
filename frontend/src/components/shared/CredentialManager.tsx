@@ -51,9 +51,7 @@ const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export default function CredentialManager({
   wallet,
-  score,
   ficoDisplay,
-  level,
   levelName,
 }: CredentialManagerProps) {
   const [selectedMode, setSelectedMode] = useState<CredentialMode>(null);

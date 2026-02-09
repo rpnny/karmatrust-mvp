@@ -12,6 +12,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { VCSMStateManager } from "../typechain-types";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 
 describe("VCSMStateManager", function () {
   let stateManager: VCSMStateManager;
@@ -64,7 +65,8 @@ describe("VCSMStateManager", function () {
     it("Should emit StateInitialized event", async function () {
       await expect(stateManager.connect(user1).initializeState(SAMPLE_HASH, 2))
         .to.emit(stateManager, "StateInitialized")
-        .withArgs(user1.address, SAMPLE_HASH, 2, await getBlockTimestamp());
+        // Timestamp is block-dependent; assert it's present rather than exact.
+        .withArgs(user1.address, SAMPLE_HASH, 2, anyValue);
     });
 
     it("Should reject duplicate initialization", async function () {

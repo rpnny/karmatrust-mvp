@@ -92,36 +92,49 @@ interface StateTransitionProof {
 // =============================================================================
 
 export class ZKStateTransitionService {
-  private isSimulation: boolean = true;
   private snarkjs: any = null;
-  private constraintCount: number = 573; // From circuit compilation
+  private constraintCount: number = 1378; // Actual constraint count from circuit
 
   constructor() {
     this.checkCircuitAvailability();
   }
 
   /**
-   * Check if compiled circuits are available
+   * Check if compiled circuits are available - throws if missing
    */
   private async checkCircuitAvailability() {
-    try {
-      const wasmExists = fs.existsSync(CIRCUIT_PATHS.wasm);
-      const zkeyExists = fs.existsSync(CIRCUIT_PATHS.zkey);
-      const vkeyExists = fs.existsSync(CIRCUIT_PATHS.vkey);
+    const wasmExists = fs.existsSync(CIRCUIT_PATHS.wasm);
+    const zkeyExists = fs.existsSync(CIRCUIT_PATHS.zkey);
+    const vkeyExists = fs.existsSync(CIRCUIT_PATHS.vkey);
 
-      if (wasmExists && zkeyExists && vkeyExists) {
-        this.snarkjs = await import('snarkjs');
-        this.isSimulation = false;
-        console.log('[ZK-StateTransition] Real mode enabled ✅');
-        console.log(`[ZK-StateTransition] Circuits loaded from: ${path.dirname(CIRCUIT_PATHS.wasm)}`);
-      } else {
-        console.log('[ZK-StateTransition] Simulation mode (circuits not available)');
-        if (!wasmExists) console.log(`[ZK-StateTransition] Missing: ${CIRCUIT_PATHS.wasm}`);
-        if (!zkeyExists) console.log(`[ZK-StateTransition] Missing: ${CIRCUIT_PATHS.zkey}`);
-        if (!vkeyExists) console.log(`[ZK-StateTransition] Missing: ${CIRCUIT_PATHS.vkey}`);
-      }
-    } catch (error: any) {
-      console.log('[ZK-StateTransition] Simulation mode:', error.message);
+    console.log('[ZK-StateTransition] Checking circuit files:');
+    console.log(`[ZK-StateTransition]   WASM: ${wasmExists ? '✅' : '❌'}`);
+    console.log(`[ZK-StateTransition]   ZKEY: ${zkeyExists ? '✅' : '❌'}`);
+    console.log(`[ZK-StateTransition]   VKEY: ${vkeyExists ? '✅' : '❌'}`);
+
+    if (!wasmExists || !zkeyExists || !vkeyExists) {
+      const missing = [
+        !wasmExists && CIRCUIT_PATHS.wasm,
+        !zkeyExists && CIRCUIT_PATHS.zkey,
+        !vkeyExists && CIRCUIT_PATHS.vkey,
+      ].filter(Boolean);
+      
+      const error = new Error(
+        'State transition circuit files not found!\n' +
+        'Missing files:\n' +
+        missing.map(f => `  - ${f}`).join('\n') +
+        '\n\nRun: cd circuits && npm run build:circuits'
+      );
+      console.error('[ZK-StateTransition] ❌ FATAL:', error.message);
+      throw error;
+    }
+
+    try {
+      this.snarkjs = await import('snarkjs');
+      console.log('[ZK-StateTransition] ✅ State transition service initialized');
+    } catch (error) {
+      console.error('[ZK-StateTransition] ❌ Failed to load snarkjs:', error);
+      throw new Error('Failed to initialize snarkjs');
     }
   }
 
@@ -164,89 +177,32 @@ export class ZKStateTransitionService {
     };
 
     console.log(`[ZK-StateTransition] Generating proof for ${fromState.level} → ${toState.level}`);
+    console.log('[ZK-StateTransition] Computing witness...');
+    
+    // Generate witness and proof
+    const { proof, publicSignals } = await this.snarkjs.groth16.fullProve(
+      input,
+      CIRCUIT_PATHS.wasm,
+      CIRCUIT_PATHS.zkey
+    );
 
-    if (this.isSimulation) {
-      return this.generateSimulatedProof(input, startTime);
-    }
-
-    return this.generateRealProof(input, startTime);
-  }
-
-  /**
-   * Generate a real ZK proof using snarkjs
-   */
-  private async generateRealProof(
-    input: StateTransitionInput,
-    startTime: number
-  ): Promise<StateTransitionProof> {
-    try {
-      console.log('[ZK-StateTransition] Computing witness...');
-      
-      // Generate witness
-      const { proof, publicSignals } = await this.snarkjs.groth16.fullProve(
-        input,
-        CIRCUIT_PATHS.wasm,
-        CIRCUIT_PATHS.zkey
-      );
-
-      const generationTime = Date.now() - startTime;
-      console.log(`[ZK-StateTransition] Proof generated in ${generationTime}ms ✅`);
-
-      return {
-        proof: {
-          pi_a: proof.pi_a.slice(0, 2).map(String),
-          pi_b: proof.pi_b.slice(0, 2).map((row: any[]) => row.slice(0, 2).reverse().map(String)),
-          pi_c: proof.pi_c.slice(0, 2).map(String),
-          protocol: proof.protocol || 'groth16',
-          curve: proof.curve || 'bn128',
-        },
-        publicSignals: publicSignals.map(String),
-        circuitId: 'state_transition',
-        proofId: `proof_${crypto.randomUUID()}`,
-        generationTime,
-        constraints: this.constraintCount,
-        isSimulated: false,
-      };
-    } catch (error: any) {
-      console.error('[ZK-StateTransition] Proof generation failed:', error.message);
-      // Fallback to simulation
-      console.log('[ZK-StateTransition] Falling back to simulation mode');
-      return this.generateSimulatedProof(input, startTime);
-    }
-  }
-
-  /**
-   * Generate a simulated proof (for demos without circuits)
-   */
-  private generateSimulatedProof(
-    input: StateTransitionInput,
-    startTime: number
-  ): StateTransitionProof {
-    const generationTime = Date.now() - startTime + 500; // Add 500ms to simulate real proof time
+    const generationTime = Date.now() - startTime;
+    console.log(`[ZK-StateTransition] ✅ Proof generated in ${generationTime}ms`);
 
     return {
       proof: {
-        pi_a: ['1', '2'],
-        pi_b: [['1', '2'], ['3', '4']],
-        pi_c: ['5', '6'],
-        protocol: 'groth16',
-        curve: 'bn128',
+        pi_a: proof.pi_a.slice(0, 2).map(String),
+        pi_b: proof.pi_b.slice(0, 2).map((row: any[]) => row.slice(0, 2).reverse().map(String)),
+        pi_c: proof.pi_c.slice(0, 2).map(String),
+        protocol: proof.protocol || 'groth16',
+        curve: proof.curve || 'bn128',
       },
-      publicSignals: [
-        input.oldStateHash,
-        input.newStateHash,
-        input.fromLevel,
-        input.toLevel,
-        input.minScoreRequired,
-        input.minPaymentsRequired,
-        input.maxDebtRatioAllowed,
-        input.minSybilScore,
-      ],
+      publicSignals: publicSignals.map(String),
       circuitId: 'state_transition',
-      proofId: `simulated_${crypto.randomUUID()}`,
+      proofId: `proof_${crypto.randomUUID()}`,
       generationTime,
       constraints: this.constraintCount,
-      isSimulated: true,
+      isSimulated: false,
     };
   }
 
@@ -258,12 +214,6 @@ export class ZKStateTransitionService {
    * @returns Whether the proof is valid
    */
   async verifyProof(proof: any, publicSignals: string[]): Promise<boolean> {
-    if (this.isSimulation) {
-      // In simulation mode, always return true
-      console.log('[ZK-StateTransition] Simulation mode: proof verification skipped');
-      return true;
-    }
-
     try {
       // Load verification key
       const vKey = JSON.parse(fs.readFileSync(CIRCUIT_PATHS.vkey, 'utf-8'));
@@ -286,9 +236,8 @@ export class ZKStateTransitionService {
   getCircuitInfo() {
     return {
       circuitId: 'state_transition',
-      isSimulation: this.isSimulation,
       constraints: this.constraintCount,
-      paths: this.isSimulation ? null : CIRCUIT_PATHS,
+      paths: CIRCUIT_PATHS,
     };
   }
 }

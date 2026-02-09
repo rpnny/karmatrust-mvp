@@ -221,7 +221,7 @@ export default function BankDashboard({ score, wallet, zkProofVerified = false }
 
           {/* Blurred Factor List */}
           <div className="space-y-3">
-            {['Wallet Age', 'Activity', 'Diversity', 'Assets', 'Stability'].map((factor, i) => (
+            {['Wallet Age', 'Activity', 'Diversity', 'Assets', 'Stability'].map((factor) => (
               <div key={factor} className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">{factor}</span>
                 <div className="relative">

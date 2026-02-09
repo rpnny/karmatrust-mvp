@@ -446,9 +446,7 @@ router.get('/status', (_req: Request, res: Response) => {
           name,
           bounds: zkProofService.getTierBounds(parseInt(key) as CreditLevel),
         })),
-      note: status.mode === 'simulation'
-        ? 'Running in simulation mode. Proofs are structurally valid but not cryptographically secure.'
-        : 'Running in real mode with compiled ZK circuits.',
+      note: 'Running in real mode with compiled ZK circuits.',
     },
     meta: { timestamp: Date.now() },
   });

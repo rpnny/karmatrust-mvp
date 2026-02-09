@@ -67,9 +67,8 @@ const EAS_ABI = [
 
 export class EASAttestationService {
   private provider: ethers.JsonRpcProvider;
-  private signer: ethers.Wallet | null = null;
-  private easContract: ethers.Contract | null = null;
-  private isSimulation: boolean = true;
+  private signer: ethers.Wallet;
+  private easContract: ethers.Contract;
   private schemaId: string;
 
   constructor() {
@@ -80,26 +79,26 @@ export class EASAttestationService {
     // Use registered schema ID
     this.schemaId = CREDIT_SCHEMA.uid!;
 
-    // Check for private key (enables real mode)
+    // Require private key - no simulation mode
     const privateKey = process.env.PRIVATE_KEY;
-    if (privateKey) {
-      try {
-        const pk = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
-        this.signer = new ethers.Wallet(pk, this.provider);
-        this.easContract = new ethers.Contract(
-          EAS_CONFIG.sepolia.easContract,
-          EAS_ABI,
-          this.signer
-        );
-        this.isSimulation = false;
-        console.log('[EAS] Real mode enabled ✅');
-        console.log(`[EAS] Attester address: ${this.signer.address}`);
-      } catch (error) {
-        console.warn('[EAS] Failed to initialize signer, falling back to simulation:', error);
-      }
-    } else {
-      console.log('[EAS] Simulation mode (no PRIVATE_KEY configured)');
+    if (!privateKey) {
+      const error = new Error(
+        'PRIVATE_KEY environment variable is required for EAS attestations.\n' +
+        'Set PRIVATE_KEY in your .env file.'
+      );
+      console.error('[EAS] ❌ FATAL:', error.message);
+      throw error;
     }
+
+    const pk = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
+    this.signer = new ethers.Wallet(pk, this.provider);
+    this.easContract = new ethers.Contract(
+      EAS_CONFIG.sepolia.easContract,
+      EAS_ABI,
+      this.signer
+    );
+    console.log('[EAS] ✅ Real mode enabled');
+    console.log(`[EAS] Attester address: ${this.signer.address}`);
   }
 
   /**
@@ -110,48 +109,7 @@ export class EASAttestationService {
    */
   async createAttestation(creditScore: CreditScore): Promise<AttestationResult> {
     console.log(`[EAS] Creating attestation for ${creditScore.wallet.slice(0, 10)}...`);
-
-    if (this.isSimulation) {
-      return this.createSimulatedAttestation(creditScore);
-    }
-
     return this.createRealAttestation(creditScore);
-  }
-
-  /**
-   * Create a simulated attestation (no gas, for demos)
-   * 
-   * Why simulation?
-   * - Hackathon demos may not have testnet ETH
-   * - Faster iteration during development
-   * - Same UI experience, just no on-chain record
-   * 
-   * The simulated ID is deterministic (same input = same output)
-   * so it's consistent across refreshes.
-   */
-  private createSimulatedAttestation(creditScore: CreditScore): AttestationResult {
-    // Generate deterministic attestation ID from credit score data
-    const attestationId = ethers.keccak256(
-      ethers.solidityPacked(
-        ['address', 'uint16', 'string', 'uint64'],
-        [
-          creditScore.wallet,
-          Math.round(creditScore.score),
-          creditScore.risk,
-          BigInt(Math.floor(creditScore.timestamp / 1000)),
-        ]
-      )
-    );
-
-    console.log(`[EAS] Simulated attestation: ${attestationId.slice(0, 20)}...`);
-
-    return {
-      attestationId,
-      explorerUrl: `${EAS_CONFIG.sepolia.explorerUrl}/attestation/view/${attestationId}`,
-      schemaId: this.schemaId,
-      recipient: creditScore.wallet,
-      isSimulated: true,
-    };
   }
 
   /**
@@ -238,10 +196,7 @@ export class EASAttestationService {
       };
     } catch (error) {
       console.error('[EAS] Transaction failed:', error);
-      
-      // Fallback to simulation if transaction fails
-      console.log('[EAS] Falling back to simulation mode');
-      return this.createSimulatedAttestation(creditScore);
+      throw error;
     }
   }
 
@@ -256,14 +211,6 @@ export class EASAttestationService {
     revoked: boolean;
     data?: any;
   }> {
-    if (this.isSimulation) {
-      // In simulation mode, just check if it looks like a valid hash
-      return {
-        valid: /^0x[a-fA-F0-9]{64}$/.test(attestationId),
-        revoked: false,
-      };
-    }
-
     try {
       const easContract = new ethers.Contract(
         EAS_CONFIG.sepolia.easContract,
@@ -305,16 +252,16 @@ export class EASAttestationService {
    * Get service status and configuration
    */
   getStatus(): {
-    mode: 'real' | 'simulation';
+    mode: 'real';
     schemaId: string;
     network: string;
-    attester?: string;
+    attester: string;
   } {
     return {
-      mode: this.isSimulation ? 'simulation' : 'real',
+      mode: 'real',
       schemaId: this.schemaId,
       network: 'sepolia',
-      attester: this.signer?.address,
+      attester: this.signer.address,
     };
   }
 

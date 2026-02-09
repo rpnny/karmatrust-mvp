@@ -1,5 +1,5 @@
 /**
- * ProofCard Component
+ * ProofCard Component - Bloomberg/OKX Style
  * 
  * Generates and displays ZK proofs for tier membership.
  * 
@@ -23,6 +23,9 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TierBadge, VerificationBadge } from '../ui/StatusBadge';
+import { ZKLoader } from '../ui/LoadingStates';
+import DataTerminal from '../ui/DataTerminal';
 
 // =============================================================================
 // TYPES
@@ -46,6 +49,7 @@ interface ProofData {
 interface ProofResponse {
   success: boolean;
   data: ProofData;
+  error?: string;
   meta?: {
     timestamp: number;
     processingTimeMs: number;
@@ -145,23 +149,12 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
   };
 
   return (
-    <div className="bg-surface/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-800">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-gray-400 text-sm font-medium tracking-wider">
-          ZK PROOF
-        </h2>
-        {proof && (
-          <span className={`text-xs px-2 py-0.5 rounded-full border ${
-            proof.isSimulated
-              ? 'bg-purple-900/30 text-purple-400 border-purple-800/50'
-              : 'bg-green-900/30 text-green-400 border-green-800/50 animate-pulse'
-          }`}>
-            {proof.isSimulated ? 'Simulated' : '✅ Real Proof'}
-          </span>
-        )}
-      </div>
-
+    <DataTerminal
+      title="ZK Proof Generator"
+      icon="🔐"
+      status={proof ? 'verified' : loading ? 'pending' : 'pending'}
+      highlight="purple"
+    >
       <AnimatePresence mode="wait">
         {/* Not yet generated */}
         {!proof && !loading && (
@@ -170,101 +163,140 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex flex-col items-center py-6"
+            className="flex flex-col items-center py-4"
           >
-            {/* Icon */}
-            <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-4">
-              <span className="text-3xl">🔐</span>
-            </div>
+            {/* Icon with glow */}
+            <motion.div 
+              className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center mb-4 border border-purple-500/30"
+              animate={{ 
+                boxShadow: ['0 0 20px rgba(139, 92, 246, 0.2)', '0 0 40px rgba(139, 92, 246, 0.4)', '0 0 20px rgba(139, 92, 246, 0.2)']
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <motion.span 
+                className="text-4xl"
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                🔐
+              </motion.span>
+            </motion.div>
 
             {/* Info */}
-            <p className="text-gray-400 text-sm text-center mb-2">
-              Generate a zero-knowledge proof
-            </p>
-            <p className="text-gray-600 text-xs text-center mb-6 max-w-xs">
-              Prove you're in <span className="text-purple-400">{currentTierName}</span> tier 
-              without revealing your exact score
+            <h3 className="text-white font-semibold mb-1">Generate ZK Proof</h3>
+            <p className="text-gray-500 text-xs text-center mb-6 max-w-xs">
+              Prove you're in <TierBadge tier={currentTierName} size="sm" /> tier 
+              (tier #{currentTier}) without revealing your exact score
             </p>
 
             {/* Mode Selection */}
             <div className="w-full max-w-md mb-4">
-              <div className="flex gap-2 p-1 bg-background rounded-lg border border-gray-800">
-                <button
+              <div className="flex gap-1 p-1 bg-black/40 rounded-xl border border-gray-700/50">
+                <motion.button
                   onClick={() => setIsPrivacyMode(false)}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition ${
-                    !isPrivacyMode
-                      ? 'bg-purple-600 text-white'
-                      : 'text-gray-400 hover:text-white'
+                  className={`relative flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    !isPrivacyMode ? 'text-white' : 'text-gray-400 hover:text-white'
                   }`}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  🌐 Public Mode
-                </button>
-                <button
+                  {!isPrivacyMode && (
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-500 rounded-lg"
+                      layoutId="modeToggle"
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center justify-center gap-1.5">
+                    <span>🌐</span> Public
+                  </span>
+                </motion.button>
+                <motion.button
                   onClick={() => setIsPrivacyMode(true)}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition ${
-                    isPrivacyMode
-                      ? 'bg-accent text-black'
-                      : 'text-gray-400 hover:text-white'
+                  className={`relative flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isPrivacyMode ? 'text-black' : 'text-gray-400 hover:text-white'
                   }`}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  🔐 Privacy Mode
-                </button>
+                  {isPrivacyMode && (
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-accent to-yellow-400 rounded-lg"
+                      layoutId="modeToggle"
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center justify-center gap-1.5">
+                    <span>🔐</span> Privacy
+                  </span>
+                </motion.button>
               </div>
             </div>
 
             {/* Privacy Mode Inputs */}
-            {isPrivacyMode && (
-              <div className="w-full max-w-md space-y-3 mb-4">
-                <div className="text-xs text-gray-400 text-center mb-2">
-                  Use the salt and commitment from your Privacy Attestation
-                </div>
-                
-                {/* Salt Input */}
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Salt (from Privacy Attestation)
-                  </label>
-                  <input
-                    type="text"
-                    value={userSalt}
-                    onChange={(e) => setUserSalt(e.target.value)}
-                    placeholder="0x3d7f42a1c8e9b5d2..."
-                    className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white text-xs font-mono placeholder-gray-600 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50 transition"
-                  />
-                </div>
+            <AnimatePresence>
+              {isPrivacyMode && (
+                <motion.div 
+                  className="w-full max-w-md space-y-3 mb-4"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <p className="text-xs text-accent text-center">
+                    Use the salt and commitment from your Privacy Attestation
+                  </p>
+                  
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Salt</label>
+                    <input
+                      type="text"
+                      value={userSalt}
+                      onChange={(e) => setUserSalt(e.target.value)}
+                      placeholder="0x3d7f42a1c8e9b5d2..."
+                      className="w-full bg-black/40 border-2 border-gray-700/50 rounded-lg px-3 py-2.5 text-white text-xs font-mono placeholder-gray-600 focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all"
+                    />
+                  </div>
 
-                {/* Commitment Input */}
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Commitment (from EAS)
-                  </label>
-                  <input
-                    type="text"
-                    value={userCommitment}
-                    onChange={(e) => setUserCommitment(e.target.value)}
-                    placeholder="0x14620111291356635582..."
-                    className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white text-xs font-mono placeholder-gray-600 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/50 transition"
-                  />
-                </div>
-              </div>
-            )}
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Commitment</label>
+                    <input
+                      type="text"
+                      value={userCommitment}
+                      onChange={(e) => setUserCommitment(e.target.value)}
+                      placeholder="0x14620111291356635582..."
+                      className="w-full bg-black/40 border-2 border-gray-700/50 rounded-lg px-3 py-2.5 text-white text-xs font-mono placeholder-gray-600 focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/20 transition-all"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            {/* Button */}
-            <button
+            {/* Generate Button */}
+            <motion.button
               onClick={generateProof}
-              className={`px-6 py-2.5 rounded-xl font-semibold transition transform hover:scale-[1.02] active:scale-[0.98] ${
+              className={`w-full max-w-md py-3.5 rounded-xl font-bold text-sm transition-all ${
                 isPrivacyMode
-                  ? 'bg-accent text-black hover:bg-accent/90'
-                  : 'bg-purple-600 text-white hover:bg-purple-500'
+                  ? 'bg-gradient-to-r from-accent to-yellow-400 text-black'
+                  : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
               }`}
+              whileHover={{ scale: 1.02, boxShadow: isPrivacyMode ? '0 0 30px rgba(255, 215, 0, 0.3)' : '0 0 30px rgba(139, 92, 246, 0.3)' }}
+              whileTap={{ scale: 0.98 }}
             >
-              Generate ZK Proof {isPrivacyMode && '(Privacy Mode)'}
-            </button>
+              <span className="flex items-center justify-center gap-2">
+                <span>⚡</span>
+                Generate ZK Proof {isPrivacyMode && '(Privacy)'}
+              </span>
+            </motion.button>
 
             {/* Error */}
-            {error && (
-              <p className="text-red-400 text-sm mt-4 text-center">{error}</p>
-            )}
+            <AnimatePresence>
+              {error && (
+                <motion.p 
+                  className="text-red-400 text-sm mt-4 text-center"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  ❌ {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
 
@@ -275,22 +307,9 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center py-8"
+            className="py-8"
           >
-            {/* Animated icon */}
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-purple-500/20 rounded-full" />
-              <div className="absolute inset-0 w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl">🔐</span>
-              </div>
-            </div>
-            <p className="text-gray-400 text-sm mt-4 animate-pulse">
-              Generating proof...
-            </p>
-            <p className="text-gray-600 text-xs mt-2">
-              Computing cryptographic constraints
-            </p>
+            <ZKLoader stage="proving" progress={50} />
           </motion.div>
         )}
 
@@ -303,130 +322,130 @@ export default function ProofCard({ wallet, currentTier, currentTierName }: Proo
             exit={{ opacity: 0, y: -10 }}
             className="space-y-4"
           >
-            {/* Success Badge */}
-            <div className="flex flex-col items-center justify-center gap-2 py-2">
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  proof.isSimulated ? 'bg-purple-900/30' : 'bg-green-900/30'
-                }`}>
-                  <span className={proof.isSimulated ? 'text-purple-400' : 'text-green-400'}>✓</span>
+            {/* Success Banner */}
+            <motion.div 
+              className={`rounded-xl p-4 border-2 ${
+                proof.isSimulated 
+                  ? 'bg-purple-900/20 border-purple-600/50' 
+                  : 'bg-gradient-to-r from-green-900/20 via-emerald-900/20 to-green-900/20 border-green-600/50'
+              }`}
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+            >
+              <div className="flex items-center justify-center gap-3">
+                <motion.span 
+                  className="text-3xl"
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring' }}
+                >
+                  {proof.isSimulated ? '🔮' : '✅'}
+                </motion.span>
+                <div className="text-center">
+                  <h3 className={`font-bold ${proof.isSimulated ? 'text-purple-400' : 'text-green-400'}`}>
+                    {proof.isSimulated ? 'Simulated Proof' : 'Real ZK Proof Generated!'}
+                  </h3>
+                  {processingTime && !proof.isSimulated && (
+                    <p className="text-xs text-green-500">
+                      ⚡ {(processingTime / 1000).toFixed(2)}s via Groth16
+                    </p>
+                  )}
                 </div>
-                <span className={`font-medium ${
-                  proof.isSimulated ? 'text-purple-400' : 'text-green-400'
-                }`}>
-                  {proof.isSimulated ? 'Simulated Proof Generated' : '🎉 Real ZK Proof Generated!'}
-                </span>
               </div>
-              {processingTime && !proof.isSimulated && (
-                <p className="text-xs text-green-500">
-                  ⚡ Generated in {(processingTime / 1000).toFixed(2)}s using Circom + Groth16
-                </p>
-              )}
-            </div>
+            </motion.div>
 
             {/* What this proves */}
-            <div className={`rounded-lg p-4 border ${
-              proof.isSimulated 
-                ? 'bg-purple-900/20 border-purple-800/30' 
-                : 'bg-green-900/20 border-green-800/30'
-            }`}>
-              <div className="flex items-center justify-between mb-2">
-                <p className={`text-sm font-medium ${
-                  proof.isSimulated ? 'text-purple-300' : 'text-green-300'
-                }`}>
-                  This proof verifies:
-                </p>
-                {!proof.isSimulated && (
-                  <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
-                    Cryptographically Secure
-                  </span>
-                )}
+            <div className="bg-black/30 rounded-xl p-4 border border-gray-700/50">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-gray-500 uppercase tracking-wider">Proof Statement</span>
+                <VerificationBadge status={proof.isSimulated ? 'pending' : 'verified'} />
               </div>
-              <p className="text-white text-lg">
-                "My score is between{' '}
-                <span className={`font-mono ${proof.isSimulated ? 'text-purple-400' : 'text-green-400'}`}>
-                  {proof.bounds.lower}
-                </span>
-                {' '}and{' '}
-                <span className={`font-mono ${proof.isSimulated ? 'text-purple-400' : 'text-green-400'}`}>
-                  {proof.bounds.upper}
-                </span>"
+              <p className="text-white text-lg font-medium">
+                "My score is in range{' '}
+                <span className="font-mono text-primary">{proof.bounds.lower}</span>
+                {' - '}
+                <span className="font-mono text-primary">{proof.bounds.upper}</span>"
               </p>
               <p className="text-gray-500 text-xs mt-2">
-                Without revealing the exact score
-                {!proof.isSimulated && ' • Verified using Groth16 protocol'}
+                Exact score remains hidden • <TierBadge tier={proof.tierName} size="sm" />
               </p>
             </div>
 
-            {/* Public Signals */}
-            <div className="bg-surface/50 rounded-lg p-4 border border-gray-800">
-              <p className="text-gray-500 text-xs mb-2">Public Signals (visible to verifier)</p>
-              <div className="space-y-2">
-                <DetailRow label="Tier" value={`${proof.tier} (${proof.tierName})`} />
-                <DetailRow label="Range" value={`${proof.bounds.lower} - ${proof.bounds.upper}`} />
-                <DetailRow 
-                  label="Commitment" 
-                  value={`${proof.commitment.slice(0, 16)}...`} 
-                  mono 
-                />
+            {/* Public Signals Grid */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Tier', value: proof.tier, sub: proof.tierName },
+                { label: 'Lower', value: proof.bounds.lower, sub: 'bound' },
+                { label: 'Upper', value: proof.bounds.upper, sub: 'bound' },
+              ].map((item, i) => (
+                <motion.div 
+                  key={item.label}
+                  className="bg-black/30 rounded-lg p-3 text-center border border-gray-800/50"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <div className="text-xs text-gray-500 mb-1">{item.label}</div>
+                  <div className="text-xl font-bold font-mono text-white">{item.value}</div>
+                  <div className="text-xs text-gray-600">{item.sub}</div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Commitment */}
+            <div className="bg-black/30 rounded-lg p-3 border border-gray-800/50">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">Commitment Hash</span>
+                <span className="text-xs font-mono text-gray-400">
+                  {proof.commitment.slice(0, 20)}...
+                </span>
               </div>
             </div>
 
             {/* Proof Preview */}
-            <div className="bg-surface/50 rounded-lg p-4 border border-gray-800">
+            <div className="bg-black/30 rounded-lg p-3 border border-gray-800/50">
               <div className="flex justify-between items-center mb-2">
-                <p className="text-gray-500 text-xs">Proof Data (share with verifier)</p>
-                <button
+                <span className="text-xs text-gray-500">Proof Data (for verifier)</span>
+                <motion.button
                   onClick={copyProof}
-                  className="text-xs text-purple-400 hover:text-purple-300 transition"
+                  className={`text-xs px-2 py-1 rounded transition ${
+                    copied 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : 'text-purple-400 hover:bg-purple-500/10'
+                  }`}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  {copied ? '✓ Copied!' : 'Copy'}
-                </button>
+                  {copied ? '✓ Copied!' : 'Copy JSON'}
+                </motion.button>
               </div>
-              <pre className="text-xs text-gray-600 font-mono overflow-hidden max-h-20">
-                {JSON.stringify(proof.proof.pi_a.slice(0, 2), null, 2)}...
+              <pre className="text-[10px] text-gray-600 font-mono overflow-hidden max-h-16 leading-tight">
+                {`{"proof":{"pi_a":["${proof.proof.pi_a[0].slice(0,20)}...`}
               </pre>
             </div>
 
             {/* Actions */}
             <div className="flex gap-3">
-              <button
+              <motion.button
                 onClick={copyProof}
-                className="flex-1 bg-purple-600 text-white py-2.5 rounded-xl font-medium hover:bg-purple-500 transition"
+                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-xl font-bold text-sm"
+                whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)' }}
+                whileTap={{ scale: 0.98 }}
               >
-                {copied ? '✓ Copied!' : 'Copy Proof'}
-              </button>
-              <button
+                {copied ? '✓ Copied to Clipboard!' : '📋 Copy Full Proof'}
+              </motion.button>
+              <motion.button
                 onClick={() => setProof(null)}
-                className="px-4 text-gray-500 hover:text-gray-300 transition"
+                className="px-4 py-3 bg-gray-800/50 text-gray-400 hover:text-white rounded-xl font-medium transition-colors border border-gray-700/50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 New
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </DataTerminal>
   );
 }
 
-// =============================================================================
-// SUB-COMPONENTS
-// =============================================================================
-
-function DetailRow({ 
-  label, 
-  value, 
-  mono = false 
-}: { 
-  label: string; 
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="flex justify-between items-center text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className={`text-gray-300 ${mono ? 'font-mono' : ''}`}>{value}</span>
-    </div>
-  );
-}

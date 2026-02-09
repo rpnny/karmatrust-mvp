@@ -76,7 +76,6 @@ async function initPoseidon() {
 // =============================================================================
 
 export class ZKProofService {
-  private isSimulation: boolean = true;
   private snarkjs: any = null;
 
   constructor() {
@@ -85,28 +84,35 @@ export class ZKProofService {
 
   /**
    * Check if compiled circuits are available
+   * Throws error if not found - no simulation mode
    */
   private async checkCircuitAvailability() {
+    // Check if circuit files exist (CIRCUIT_PATHS are already absolute)
+    const wasmExists = fs.existsSync(CIRCUIT_PATHS.wasm);
+    const zkeyExists = fs.existsSync(CIRCUIT_PATHS.zkey);
+
+    console.log('[ZKP] Checking circuit files:');
+    console.log(`[ZKP]   WASM: ${CIRCUIT_PATHS.wasm} → ${wasmExists ? '✅' : '❌'}`);
+    console.log(`[ZKP]   ZKEY: ${CIRCUIT_PATHS.zkey} → ${zkeyExists ? '✅' : '❌'}`);
+
+    if (!wasmExists || !zkeyExists) {
+      const error = new Error(
+        'ZK circuit files not found! Required files:\n' +
+        `  - WASM: ${CIRCUIT_PATHS.wasm}\n` +
+        `  - ZKEY: ${CIRCUIT_PATHS.zkey}\n` +
+        'Run: cd circuits && npm run build:circuits'
+      );
+      console.error('[ZKP] ❌ FATAL:', error.message);
+      throw error;
+    }
+
     try {
-      // Check if circuit files exist (CIRCUIT_PATHS are already absolute)
-      const wasmExists = fs.existsSync(CIRCUIT_PATHS.wasm);
-      const zkeyExists = fs.existsSync(CIRCUIT_PATHS.zkey);
-
-      console.log('[ZKP] Checking circuit files:');
-      console.log(`[ZKP]   WASM: ${CIRCUIT_PATHS.wasm} → ${wasmExists ? '✅' : '❌'}`);
-      console.log(`[ZKP]   ZKEY: ${CIRCUIT_PATHS.zkey} → ${zkeyExists ? '✅' : '❌'}`);
-
-      if (wasmExists && zkeyExists) {
-        // Dynamically import snarkjs
-        this.snarkjs = await import('snarkjs');
-        this.isSimulation = false;
-        console.log('[ZKP] 🎉 Real ZK Proof mode enabled! Using actual Circom circuits.');
-      } else {
-        console.log('[ZKP] ⚠️  Simulation mode (circuits not found)');
-        console.log('[ZKP] Run: cd circuits && npm run build:circuits');
-      }
+      // Dynamically import snarkjs
+      this.snarkjs = await import('snarkjs');
+      console.log('[ZKP] ✅ ZK Proof service initialized with real circuits.');
     } catch (error) {
-      console.log('[ZKP] ⚠️  Simulation mode (error loading circuits):', error);
+      console.error('[ZKP] ❌ Failed to load snarkjs:', error);
+      throw new Error('Failed to initialize snarkjs. Is it installed? Run: npm install');
     }
   }
 
@@ -191,69 +197,9 @@ export class ZKProofService {
 
     console.log(`[ZKP] Generating proof: score=${score}, tier=${CreditLevel[tier]}, commitment=${commitment.slice(0, 20)}...`);
 
-    if (this.isSimulation) {
-      const result = await this.generateSimulatedProof(score, tier, salt, commitment);
-      return { ...result, salt: saltHex };
-    }
-
+    // Always generate real proofs - no simulation fallback
     const result = await this.generateRealProof(score, tier, salt, commitment);
     return { ...result, salt: saltHex };
-  }
-
-  /**
-   * Generate a simulated proof (for demos)
-   * 
-   * Simulated proofs have the same structure as real proofs but with
-   * predictable values. They can be "verified" in simulation mode.
-   */
-  private async generateSimulatedProof(
-    score: number,
-    tier: CreditLevel,
-    salt: bigint,
-    commitment: string
-  ): Promise<{
-    proof: ZKProof;
-    publicSignals: string[];
-    commitment: string;
-    isSimulated: boolean;
-  }> {
-    const bounds = TIER_BOUNDS[tier];
-
-    // Generate deterministic "proof" values based on inputs
-    const hash = this.simpleHash(`${score}-${tier}-${salt}`);
-
-    const proof: ZKProof = {
-      pi_a: [
-        '0x' + hash.slice(0, 64),
-        '0x' + hash.slice(64, 128) || hash.slice(0, 64),
-        '1',
-      ],
-      pi_b: [
-        ['0x' + hash.slice(0, 32), '0x' + hash.slice(32, 64)],
-        ['0x' + hash.slice(64, 96) || hash.slice(0, 32), '0x' + hash.slice(96, 128) || hash.slice(32, 64)],
-        ['1', '0'],
-      ],
-      pi_c: [
-        '0x' + hash.slice(0, 64),
-        '0x' + hash.slice(64, 128) || hash.slice(0, 64),
-        '1',
-      ],
-      publicSignals: [
-        tier.toString(),
-        bounds.lower.toString(),
-        bounds.upper.toString(),
-        commitment,
-      ],
-      protocol: 'groth16',
-      curve: 'bn128',
-    };
-
-    return {
-      proof,
-      publicSignals: proof.publicSignals,
-      commitment,
-      isSimulated: true,
-    };
   }
 
   /**
@@ -286,32 +232,27 @@ export class ZKProofService {
       commitment: commitment,
     };
 
-    try {
-      console.log('[ZKP] Generating REAL ZK proof using snarkjs...');
-      // Generate proof (CIRCUIT_PATHS are already absolute)
-      const { proof, publicSignals } = await this.snarkjs.groth16.fullProve(
-        input,
-        CIRCUIT_PATHS.wasm,
-        CIRCUIT_PATHS.zkey
-      );
-      console.log('[ZKP] ✅ Real ZK proof generated successfully!');
+    console.log('[ZKP] Generating REAL ZK proof using snarkjs...');
+    // Generate proof (CIRCUIT_PATHS are already absolute)
+    const { proof, publicSignals } = await this.snarkjs.groth16.fullProve(
+      input,
+      CIRCUIT_PATHS.wasm,
+      CIRCUIT_PATHS.zkey
+    );
+    console.log('[ZKP] ✅ Real ZK proof generated successfully!');
 
-      return {
-        proof: {
-          pi_a: proof.pi_a.map(String),
-          pi_b: proof.pi_b.map((row: any[]) => row.map(String)),
-          pi_c: proof.pi_c.map(String),
-          publicSignals: publicSignals.map(String),
-          protocol: 'groth16',
-          curve: 'bn128',
-        },
+    return {
+      proof: {
+        pi_a: proof.pi_a.map(String),
+        pi_b: proof.pi_b.map((row: any[]) => row.map(String)),
+        pi_c: proof.pi_c.map(String),
         publicSignals: publicSignals.map(String),
-        commitment,
-        isSimulated: false,
-      };
-    } catch (error) {
-      console.error('[ZKP] Real proof generation failed, falling back to simulation:', error);
-      return this.generateSimulatedProof(score, tier, salt, commitment);
+        protocol: 'groth16',
+        curve: 'bn128',
+      },
+      publicSignals: publicSignals.map(String),
+      commitment,
+      isSimulated: false,
     }
   }
 
@@ -339,59 +280,24 @@ export class ZKProofService {
     };
 
     console.log(`[ZKP] Verifying proof for tier ${CreditLevel[tier]}`);
+    console.log('[ZKP] Verifying REAL ZK proof...');
+    
+    // Load verification key (CIRCUIT_PATHS.vkey is already absolute)
+    const vkey = JSON.parse(fs.readFileSync(CIRCUIT_PATHS.vkey, 'utf8'));
 
-    if (this.isSimulation) {
-      // In simulation mode, we do basic validation
-      const valid = this.validateSimulatedProof(proof, publicSignals);
-      return { valid, tier, bounds, isSimulated: true };
-    }
+    // Verify using snarkjs
+    const valid = await this.snarkjs.groth16.verify(
+      vkey,
+      publicSignals,
+      {
+        pi_a: proof.pi_a,
+        pi_b: proof.pi_b,
+        pi_c: proof.pi_c,
+      }
+    );
 
-    try {
-      console.log('[ZKP] Verifying REAL ZK proof...');
-      // Load verification key (CIRCUIT_PATHS.vkey is already absolute)
-      const vkey = JSON.parse(fs.readFileSync(CIRCUIT_PATHS.vkey, 'utf8'));
-
-      // Verify using snarkjs
-      const valid = await this.snarkjs.groth16.verify(
-        vkey,
-        publicSignals,
-        {
-          pi_a: proof.pi_a,
-          pi_b: proof.pi_b,
-          pi_c: proof.pi_c,
-        }
-      );
-
-      console.log(`[ZKP] ✅ Real ZK proof verification result: ${valid}`);
-      return { valid, tier, bounds, isSimulated: false };
-    } catch (error) {
-      console.error('[ZKP] ❌ Verification error:', error);
-      // Fallback to simulation validation
-      const valid = this.validateSimulatedProof(proof, publicSignals);
-      return { valid, tier, bounds, isSimulated: true };
-    }
-  }
-
-  /**
-   * Validate a simulated proof (basic structure check)
-   */
-  private validateSimulatedProof(proof: ZKProof, publicSignals: string[]): boolean {
-    // Check proof structure
-    if (!proof.pi_a || proof.pi_a.length !== 3) return false;
-    if (!proof.pi_b || proof.pi_b.length !== 3) return false;
-    if (!proof.pi_c || proof.pi_c.length !== 3) return false;
-    if (!publicSignals || publicSignals.length < 4) return false;
-
-    // Check tier is valid
-    const tier = parseInt(publicSignals[0]);
-    if (tier < 1 || tier > 5) return false;
-
-    // Check bounds are valid
-    const lower = parseInt(publicSignals[1]);
-    const upper = parseInt(publicSignals[2]);
-    if (lower > upper) return false;
-
-    return true;
+    console.log(`[ZKP] ${valid ? '✅' : '❌'} Proof verification result: ${valid}`);
+    return { valid, tier, bounds, isSimulated: false };
   }
 
   /**
@@ -423,26 +329,6 @@ export class ZKProofService {
   }
 
   /**
-   * Simple hash function for simulation (not cryptographically secure)
-   */
-  private simpleHash(input: string): string {
-    let hash = 0;
-    for (let i = 0; i < input.length; i++) {
-      const char = input.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    
-    // Extend to 256 hex characters
-    let result = Math.abs(hash).toString(16);
-    while (result.length < 256) {
-      result = result + Math.abs(hash * (result.length + 1)).toString(16);
-    }
-    
-    return result.slice(0, 256);
-  }
-
-  /**
    * Get tier bounds
    */
   getTierBounds(tier: CreditLevel): { lower: number; upper: number } {
@@ -453,12 +339,12 @@ export class ZKProofService {
    * Get service status
    */
   getStatus(): {
-    mode: 'real' | 'simulation';
-    circuitsAvailable: boolean;
+    mode: 'real';
+    circuitsAvailable: true;
   } {
     return {
-      mode: this.isSimulation ? 'simulation' : 'real',
-      circuitsAvailable: !this.isSimulation,
+      mode: 'real',
+      circuitsAvailable: true,
     };
   }
 }

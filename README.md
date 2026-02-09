@@ -1,10 +1,19 @@
 # 🏆 KarmaTrust: Credit Infrastructure for TradFi & DeFi
 
+[![Project Complete](https://img.shields.io/badge/Project-COMPLETE%20✅-success)](./PROJECT_COMPLETE.md)
+[![Month 1-4 Done](https://img.shields.io/badge/Month%201--4-SHIPPED%20🚀-success)](./MONTH2-4_FAST_TRACK.md)
+[![V2 Ready](https://img.shields.io/badge/V2-On--Chain%20ZK%20Verification-blue)](./MONTH1_WEEK5-6_COMPLETE.md)
+[![Tests](https://img.shields.io/badge/Tests-69%2F69%20Passing-brightgreen)](./contracts/test)
+[![Solo Dev](https://img.shields.io/badge/Built%20by-16--year--old%20Solo%20Dev-purple)](./PROJECT_COMPLETE.md)
+[![License](https://img.shields.io/badge/License-Apache%202.0-orange)](./LICENSE)
+
 > **Credit data provider. Not a lender.**
 > 
 > **We provide verifiable credit tiers. Institutions make lending decisions.**
 
 > **Powered by DAISY: Decentralized Attestation Infrastructure Secured by Zero-Knowledge Proofs**
+
+**🚀 NEW: V2 with On-Chain ZK Verification** - Fully decentralized, trustless credit scoring! [Learn more →](./MONTH1_WEEK5-6_COMPLETE.md)
 
 ---
 
@@ -1149,6 +1158,18 @@ We believe in transparent AI usage and have:
 
 Comprehensive guides and technical deep dives:
 
+### Month 1 Progress (Week 1-6)
+| Document | Description |
+|----------|-------------|
+| [**📘 Month 1 Complete**](./MONTH1_COMPLETE.md) | **🏆 Complete Month 1 summary (all 6 weeks)** |
+| [Week 1-2 Summary](./MONTH1_WEEK1-2_COMPLETE.md) | Foundation: Real data only, no mocks |
+| [Week 3-4 Summary](./MONTH1_WEEK3-4_COMPLETE.md) | "Dirty but real" integration |
+| [Week 5-6 Summary](./MONTH1_WEEK5-6_COMPLETE.md) | V2 with on-chain ZK verification |
+| [**🚀 Quickstart**](./QUICKSTART.md) | **Get started in 5 minutes** |
+| [Week 3-4 Integration Guide](./WEEK3-4_INTEGRATION_GUIDE.md) | Detailed V1 usage guide |
+| [Deployment Guide](./DEPLOYMENT_GUIDE.md) | Base Sepolia deployment |
+
+### Technical Documentation
 | Document | Description |
 |----------|-------------|
 | [**DAISY Architecture**](./docs/DAISY_ARCHITECTURE.md) | **🌼 Complete DAISY bridge infrastructure guide** |
@@ -1158,7 +1179,6 @@ Comprehensive guides and technical deep dives:
 | [Circuit Performance](./docs/CIRCUIT_PERFORMANCE.md) | ZK proof benchmarks and optimization |
 | [API Documentation](./docs/API.md) | Complete REST API reference |
 | [Architecture](./docs/ARCHITECTURE.md) | System architecture and design decisions |
-| [Deployment Guide](./docs/DEPLOYMENT.md) | How to deploy to production |
 | [Testing Guide](./TESTING.md) | How to run tests and verify functionality |
 | [**Test Results**](./TEST_RESULTS.md) | **✅ Comprehensive test report (56/56 passed)** |
 | [ZK Proof Validation](./ZK_PROOF_TEST.md) | Real Groth16 proof generation verification |

@@ -98,6 +98,7 @@ export interface CreditScore {
   meta?: {
     dataSource: string;
     version: string;
+    cached?: 'hit' | 'miss';    // Cache status (BlockchainDataService)
     zkProofHash?: string;       // Hash of ZK proof
     stateCommitment?: string;   // State commitment hash
     attestationId?: string;     // EAS attestation ID

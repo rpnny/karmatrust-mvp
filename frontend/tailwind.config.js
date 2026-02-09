@@ -23,13 +23,17 @@ export default {
       colors: {
         // Primary brand colors
         primary: '#00ff88',      // DeFi green
+        'primary-dark': '#00cc6a',
         accent: '#ffd700',       // Gold
+        'accent-dark': '#ccac00',
         tradfi: '#4169e1',       // Royal blue (TradFi)
-        bridge: '#ff69b4',       // Hot pink (Bridge layer)
+        bridge: '#00d4ff',       // Cyan (Bridge layer)
+        purple: '#8b5cf6',       // Purple (ZK)
         
         // Background colors
         background: '#0a0a0a',
         surface: '#1a1a1a',
+        'surface-light': '#222222',
         
         // Semantic colors
         success: '#00ff88',

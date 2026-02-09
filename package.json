@@ -1,6 +1,7 @@
 {
   "name": "karmatrust-mvp",
   "version": "0.1.0",
+  "type": "module",
   "description": "On-chain credit scoring with zero-knowledge privacy",
   "private": true,
   "workspaces": [
@@ -13,7 +14,12 @@
     "dev:backend": "npm run dev --workspace=backend",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "build": "npm run build --workspace=frontend",
-    "test:contracts": "npm run test --workspace=contracts"
+    "test:contracts": "npm run test --workspace=contracts",
+    "score-and-set": "ts-node scripts/score-and-set-tier.ts",
+    "submit-proof-v2": "ts-node scripts/submit-proof-v2.ts",
+    "deploy:base": "npm run --workspace=contracts hardhat run scripts/deploy-base.ts -- --network baseSepolia",
+    "deploy:v2": "npm run --workspace=contracts hardhat run scripts/deploy-v2.ts -- --network baseSepolia",
+    "test:borrow": "npm run --workspace=contracts hardhat run scripts/test-borrow.ts -- --network baseSepolia"
   },
   "keywords": [
     "credit-score",
@@ -26,6 +32,10 @@
   "author": "Ronny <2867755637@qq.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@types/node": "^25.2.2",
+    "axios": "^1.13.5",
+    "concurrently": "^8.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

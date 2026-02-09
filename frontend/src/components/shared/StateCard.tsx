@@ -61,11 +61,10 @@ const LEVEL_COLORS: Record<string, string> = {
 // COMPONENT
 // =============================================================================
 
-export default function StateCard({ wallet, currentLevel, currentLevelName }: StateCardProps) {
+export default function StateCard({ wallet, currentLevelName }: StateCardProps) {
   const [state, setState] = useState<VCSMState | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialized, setInitialized] = useState(false);
 
   /**
    * Initialize or fetch VCSM state
@@ -91,7 +90,6 @@ export default function StateCard({ wallet, currentLevel, currentLevelName }: St
 
       if (data.success) {
         setState(data.data);
-        setInitialized(true);
       } else {
         setError(data.error || 'Failed to initialize state');
       }

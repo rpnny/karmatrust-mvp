@@ -32,12 +32,10 @@ import { WalletAnalysis } from '../types/index.js';
  * Trust levels indicate reliability:
  * - 100: Authoritative source (Etherscan with API key)
  * - 80: Good source (RPC provider)
- * - 20: Baseline (deterministic, for demo only)
  */
 const DATA_SOURCES = {
   etherscan: { name: 'etherscan', trustLevel: 100 },
   rpc: { name: 'rpc', trustLevel: 80 },
-  deterministic: { name: 'deterministic', trustLevel: 20 },
 };
 
 // RPC URLs with fallbacks (ordered by reliability)
@@ -205,23 +203,42 @@ export class BlockchainDataService {
   }
 
   /**
-   * Fallback fetch when Etherscan fails
+   * Fallback fetch when Etherscan fails - tries RPC with retries
    */
   private async fetchWithFallback(normalizedWallet: string): Promise<WalletAnalysis & { dataSource: string; trustLevel: number }> {
+    // Try RPC provider with retries
+    if (!this.provider) {
+      throw new Error('No RPC provider configured. Set SEPOLIA_RPC_URL or ETHEREUM_RPC_URL in .env');
+    }
 
-    // Try RPC provider
-    if (this.provider) {
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
+        console.log(`[BlockchainData] RPC attempt ${attempt}/${maxRetries}...`);
         const data = await this.fetchFromRPC(normalizedWallet);
+        console.log(`[BlockchainData] ✅ RPC fetch successful on attempt ${attempt}`);
         return { ...data, dataSource: 'rpc', trustLevel: DATA_SOURCES.rpc.trustLevel };
       } catch (error) {
-        console.warn('[BlockchainData] RPC failed, using deterministic baseline...', error);
+        lastError = error as Error;
+        console.warn(`[BlockchainData] RPC attempt ${attempt} failed:`, error);
+        
+        // Wait before retry (exponential backoff: 1s, 2s)
+        if (attempt < maxRetries) {
+          const delayMs = attempt * 1000;
+          console.log(`[BlockchainData] Waiting ${delayMs}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
       }
     }
 
-    // Fallback to deterministic baseline
-    const data = this.generateDeterministicData(normalizedWallet);
-    return { ...data, dataSource: 'deterministic', trustLevel: DATA_SOURCES.deterministic.trustLevel };
+    // All attempts failed
+    throw new Error(
+      `Failed to fetch wallet data after ${maxRetries} attempts. ` +
+      `Last error: ${lastError?.message}. ` +
+      `Please check your RPC connection or Etherscan API key.`
+    );
   }
 
   /**
@@ -332,49 +349,6 @@ export class BlockchainDataService {
     };
   }
 
-  /**
-   * Generate deterministic data based on address hash
-   * 
-   * Why deterministic?
-   * - Same address always returns same result (reproducible)
-   * - Good for demos (consistent behavior)
-   * - Uses sin(hash) for pseudo-random but deterministic values
-   * 
-   * How it works:
-   * - Take last 8 hex chars of address
-   * - Convert to number (seed)
-   * - Use sin(seed + offset) for each metric
-   */
-  private generateDeterministicData(wallet: string): WalletAnalysis {
-    // Create seed from address (last 8 hex characters)
-    const seed = parseInt(wallet.slice(-8), 16);
-
-    // Deterministic pseudo-random function
-    const hash = (offset: number): number => {
-      const x = Math.sin(seed + offset) * 10000;
-      return x - Math.floor(x); // Returns 0-1
-    };
-
-    // Generate metrics (all deterministic based on address)
-    const txCount = Math.floor(hash(1) * 500) + 10;           // 10-510 transactions
-    const protocols = Math.floor(hash(2) * 20) + 1;           // 1-21 protocols
-    const valueEth = hash(3) * 100;                           // 0-100 ETH
-    const ageDays = Math.floor(hash(4) * 730) + 30;           // 30-760 days
-    const lastActiveDays = Math.floor(hash(5) * 30);          // 0-30 days ago
-    const volatility = hash(6) * 0.5;                         // 0-0.5 volatility
-
-    return {
-      transactionCount: txCount,
-      uniqueProtocols: protocols,
-      totalValue: valueEth,
-      firstTransaction: Date.now() - (ageDays * 24 * 60 * 60 * 1000),
-      lastTransaction: Date.now() - (lastActiveDays * 24 * 60 * 60 * 1000),
-      volatility,
-      highRiskInteractions: Math.floor(hash(7) * 3), // 0-2 high risk
-      scamConnections: false,
-      mixerUsage: false,
-    };
-  }
 
   /**
    * Calculate volatility from transaction history
